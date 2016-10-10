@@ -1,0 +1,15 @@
+{"frames":{
+    "heart-1":{"frame":{"x":34,"y":54,"w":16,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":16,"h":16},"sourceSize":{"w":16,"h":16}},
+    "heart-2":{"frame":{"x":34,"y":0,"w":16,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":16,"h":16},"sourceSize":{"w":16,"h":16}},
+    "pauline-1":{"frame":{"x":52,"y":24,"w":15,"h":22},"spriteSourceSize":{"x":0,"y":0,"w":15,"h":22},"sourceSize":{"w":15,"h":22}},
+    "pauline-2":{"frame":{"x":52,"y":48,"w":15,"h":22},"spriteSourceSize":{"x":0,"y":0,"w":15,"h":22},"sourceSize":{"w":15,"h":22}},
+    "pauline-3":{"frame":{"x":52,"y":0,"w":16,"h":22},"spriteSourceSize":{"x":0,"y":0,"w":16,"h":22},"sourceSize":{"w":16,"h":22}},
+    "pauline-4":{"frame":{"x":34,"y":18,"w":16,"h":13},"spriteSourceSize":{"x":0,"y":0,"w":16,"h":13},"sourceSize":{"w":16,"h":13}},
+    "pauline-5":{"frame":{"x":34,"y":36,"w":16,"h":13},"spriteSourceSize":{"x":0,"y":0,"w":16,"h":13},"sourceSize":{"w":16,"h":13}},
+    "help-cyan-1":{"frame":{"x":0,"y":18,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}},
+    "help-cyan-2":{"frame":{"x":0,"y":72,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}},
+    "help-blue-1":{"frame":{"x":0,"y":54,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}},
+    "help-blue-2":{"frame":{"x":34,"y":72,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}},
+    "help-white-1":{"frame":{"x":0,"y":0,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}},
+    "help-white-2":{"frame":{"x":0,"y":36,"w":32,"h":16},"spriteSourceSize":{"x":0,"y":0,"w":32,"h":16},"sourceSize":{"w":32,"h":16}}},
+    "meta":{"app":"https://www.leshylabs.com/apps/sstool/","version":"Leshy SpriteSheet Tool v0.8.4","image":"pauline.png","size":{"w":68,"h":88},"scale":1}}
