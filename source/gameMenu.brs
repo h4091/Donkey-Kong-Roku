@@ -184,9 +184,9 @@ Sub ShowHighScores(waitTime = 0 as integer)
     ' bmp = CreateObject("roBitmap", {width:640, height:480, alphaenable:true})
     ' border = 10
     ' columns = m.const.TILES_X + 3
-    ' lineSpacing = (m.const.TILE_HEIGHT + 10)
+    ' lineSpacing = (m.const.BLOCK_HEIGHT + 10)
     ' x = border
-    ' y = m.const.TILE_HEIGHT
+    ' y = m.const.BLOCK_HEIGHT
     ' WriteText(bmp, padCenter(GetVersionMap(version) + " Donkey Kong", columns), x, y)
     ' y += lineSpacing
     ' WriteText(bmp, padCenter("HIGH SCORES", columns), x, y)
@@ -195,7 +195,7 @@ Sub ShowHighScores(waitTime = 0 as integer)
     ' y += lineSpacing
     ' ground = m.regions.tiles.Lookup("ground")
     ' for i = 0 to columns - 1
-    '     bmp.DrawObject(x + i * m.const.TILE_WIDTH, y, ground)
+    '     bmp.DrawObject(x + i * m.const.BLOCK_WIDTH, y, ground)
     ' next
     ' y += (m.const.GROUND_HEIGHT + 7)
     ' scores = m.highScores[version]

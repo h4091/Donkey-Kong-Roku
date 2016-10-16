@@ -14,7 +14,7 @@ Sub Main()
     'Constants
     m.code = bslUniversalControlEventCodes()
     m.const = GetConstants()
-    m.colors = {black: &hFF, white: &hFFFFFFFF, darkgray: &h0F0F0FFF}
+    m.colors = {black: &hFF, white: &hFFFFFFFF, darkgray: &h0F0F0FFF, red: &hFF0000FF, blue: &h0000FFFF}
     'Util objects
     app = CreateObject("roAppManager")
     app.SetTheme(GetTheme())
@@ -27,6 +27,7 @@ Sub Main()
     m.files = CreateObject("roFileSystem")
     m.fonts = CreateObject("roFontRegistry")
     m.fonts.Register("pkg:/assets/fonts/PressStart2P.ttf")
+    m.gameFont = m.fonts.getFont("Press Start 2P", 16, false, false)
     m.manifest = GetManifestArray()
     m.settings = LoadSettings()
     'm.highScores = LoadHighScores()
@@ -43,6 +44,8 @@ Sub Main()
         selection = StartMenu(selection)
         if selection = m.const.MENU_START
             print "Starting game..."
+            m.gameScore = 0
+            m.highScore = 0 'To be implemented
             m.currentLevel = 1
             m.currentBoard = 1
             m.newLevel = true
@@ -64,16 +67,24 @@ Sub PlayIntro(waitTime as integer)
         screen.Clear(m.colors.black)
         screen.SwapBuffers()
     end if
-    imgIntro = "pkg:/assets/images/start-screen.png"
-    bmp = CreateObject("roBitmap", imgIntro)
-    centerX = Cint((screen.GetWidth() - bmp.GetWidth()) / 2)
-    centerY = Cint((screen.GetHeight() - bmp.GetHeight()) / 2)
+    imgIntro1 = "pkg:/assets/images/start-screen-1.png"
+    imgIntro2 = "pkg:/assets/images/start-screen-2.png"
+    bmp1 = CreateObject("roBitmap", imgIntro1)
+    bmp2 = CreateObject("roBitmap", imgIntro2)
+    centerX = Cint((screen.GetWidth() - bmp1.GetWidth()) / 2)
+    centerY = Cint((screen.GetHeight() - bmp1.GetHeight()) / 2)
     screen.Clear(m.colors.black)
-    screen.DrawObject(centerX, centerY, bmp)
-    screen.SwapBuffers()
+    for s = 0 to 31
+        if IsOdd(s)
+            screen.DrawObject(centerX, centerY, bmp1)
+        else
+            screen.DrawObject(centerX, centerY, bmp2)
+        end if
+        screen.SwapBuffers()
+        sleep(50)
+    next
 	while true
     	key = wait(waitTime, m.port)
-        print "intro"
 		if key = invalid or key < 100 then exit while
 	end while
 End Sub
@@ -106,10 +117,7 @@ Sub ResetGame()
     print "Reseting Level "; itostr(g.currentLevel)
     if g.board <> invalid
         DestroyStage()
-        if g.jumpman <> invalid and g.jumpman.sprite <> invalid
-            g.jumpman.sprite.Remove()
-            g.jumpman.sprite = invalid
-        end if
+        DestroyChars()
     end if
     'Update board map
     if g.maps = invalid
@@ -121,14 +129,66 @@ Sub ResetGame()
     end if
     g.board = g.maps.boards.Lookup("board-" + itostr(g.level[m.currentBoard-1]))
     g.board.redraw = true
+    'Create Objects
+    if g.objects = invalid
+        g.objects = []
+        for i = 0 to g.board.objects.Count() - 1
+            obj = g.board.objects[i]
+            g.objects.Push({name: obj.name})
+            g.objects[i].blockX = obj.blockX
+            g.objects[i].blockY = obj.blockY
+            g.objects[i].offsetX = 0
+            if g.board.map.Count() > 0
+                g.objects[i].offsetY = obj.offsetY - 1
+            else
+                g.objects[i].offsetY = 0
+            end if
+            g.objects[i].frameName = obj.name
+            g.objects[i].frame = 0
+        next
+    end if
+    'Create Kong
+    if g.kong = invalid
+        g.kong = {}
+        g.kong.blockX = g.board.kong.blockX
+        g.kong.blockY = g.board.kong.blockY
+        g.kong.offsetX = 0
+        if g.board.map.Count() > 0
+            g.kong.offsetY = g.board.map[g.kong.blockY][Int(g.kong.blockX / 2)].o - 1
+        else
+            g.kong.offsetY = 0
+        end if
+        g.kong.frameName = "kong-1"
+        g.kong.frame = 0
+    end if
+    'Create Lady
+    if g.lady = invalid
+        g.lady = {}
+        g.lady.blockX = g.board.lady.blockX
+        g.lady.blockY = g.board.lady.blockY
+        g.lady.offsetX = 0
+        if g.board.map.Count() > 0
+            g.lady.offsetY = g.board.map[g.lady.blockY][Int(g.lady.blockX / 2)].o - 1
+        else
+            g.lady.offsetY = 0
+        end if
+        g.lady.frameName = "pauline-1"
+        g.lady.frame = 0
+    end if
     'Create Jumpman
     if g.jumpman = invalid
-        g.jumpman = {alive: true, health: 3} 'CreateJumpman(g.level)
-    ' else
-    '     g.jumpman.startLevel(g.level)
+        g.jumpman = CreateJumpman(g.board)
+    else
+        g.jumpman.startBoard(g.board)
     end if
     'StopAudio()
     'StopSound()
+End Sub
+
+Sub AddScore(points as integer)
+    g = GetGlobalAA()
+    g.gameScore += points
+    if g.gameScore > m.highScore then g.highScore = g.gameScore
 End Sub
 
 Sub LoadGameSprites()
@@ -146,9 +206,9 @@ End Sub
 Sub LoadAnimations()
     if m.anims = invalid then m.anims = {}
     if m.anims.kong = invalid
-        m.anims.kong = ParseJson(ReadAsciiFile("pkg:/assets/anims/kong.json"))
-        m.anims.jumpman = ParseJson(ReadAsciiFile("pkg:/assets/anims/jumpman.json"))
-        m.anims.lady = ParseJson(ReadAsciiFile("pkg:/assets/anims/lady.json"))
+        'm.anims.kong = ParseJson(ReadAsciiFile("pkg:/assets/anims/kong.json"))
+        m.anims.jumpman = ParseJson(ReadAsciiFile("pkg:/assets/anims/mario.json"))
+        'm.anims.lady = ParseJson(ReadAsciiFile("pkg:/assets/anims/pauline.json"))
     end if
 End Sub
 
@@ -161,7 +221,7 @@ Sub SetupGameScreen()
 		m.mainHeight = 480
 	end if
     m.gameWidth = 448
-    m.gameHeight = 448
+    m.gameHeight = 480
     ResetScreen(m.mainWidth, m.mainHeight, m.gameWidth, m.gameHeight)
 End Sub
 
@@ -170,8 +230,7 @@ Sub ResetScreen(mainWidth as integer, mainHeight as integer, gameWidth as intege
     g.mainScreen = CreateObject("roScreen", true, mainWidth, mainHeight)
     g.mainScreen.SetMessagePort(g.port)
     xOff = Cint((mainWidth-gameWidth) / 2)
-    yOff = Cint((mainHeight-gameHeight) / 2)
-    drwRegions = dfSetupDisplayRegions(g.mainScreen, xOff, yOff, gameWidth, gameHeight)
+    drwRegions = dfSetupDisplayRegions(g.mainScreen, xOff, 0, gameWidth, gameHeight)
     g.gameScreen = drwRegions.main
     g.gameLeft = drwRegions.left
     g.gameRight = drwRegions.right

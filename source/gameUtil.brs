@@ -12,12 +12,14 @@
 Function GetConstants() as object
     const = {}
 
-    const.TILE_WIDTH    = 20
-    const.TILE_HEIGHT   = 22
-    const.GROUND_HEIGHT = 10
+    const.BLOCK_WIDTH    = 16
+    const.BLOCK_HEIGHT   = 32
+
+    const.BLOCKS_X = 28
+    const.BLOCKS_Y = 14
 
     const.MOVE_X = 4
-    const.MOVE_Y = 4
+    const.MOVE_Y = 2
 
     const.START_HEALTH = 3
     const.LIMIT_HEALTH = 5
@@ -27,19 +29,25 @@ Function GetConstants() as object
     const.MENU_HISCORES = 2
     const.MENU_CREDITS  = 3
 
-    const.MAP_EMPTY = 0
-    const.MAP_BLOCK = 1
-    const.MAP_SOLID = 2
-    const.MAP_LADDR = 3
-    const.MAP_BAR   = 4
-    const.MAP_TRAP  = 5
-    const.MAP_HLADR = 6
-    const.MAP_GOLD  = 7
-    const.MAP_RUNNR = 8
-    const.MAP_GUARD = 9
+    const.MAP_EMPTY       = 0
+    const.MAP_ONLY_FLOOR  = 1
+    const.MAP_TOP_LADDER  = 2
+    const.MAP_TOP_BROKEN  = 3
+    const.MAP_BTTM_LADDER = 4
+    const.MAP_BTTM_BROKEN = 5
+    const.MAP_FULL_LADDER = 6
+    const.MAP_ELEVATOR    = 7
+    const.MAP_CONVEYOR    = 8
 
-    const.SCORE_COMPLETE = 1500
-    const.SCORE_JUMP     = 100
+    const.ACT_NONE  = 0
+    const.ACT_UP    = 1
+    const.ACT_DOWN  = 2
+    const.ACT_LEFT  = 3
+    const.ACT_RIGHT = 4
+    const.ACT_DIG   = 5
+
+    const.SCORE_BONUS = 5000
+    const.SCORE_JUMP  = 100
 
     const.CONTROL_VERTICAL   = 0
     const.CONTROL_HORIZONTAL = 1
@@ -83,7 +91,29 @@ Function GetManifestArray() as Object
     return aa
 End Function
 
-'------- String Functions -------
+Function GetFloorOffset(blockX as integer, blockY as integer) as integer
+    tx = Int(blockX / 2)
+    ty = blockY
+    mapTile = m.board.map[ty][tx]
+    return mapTile.o - 1
+End Function
+
+Function GetBlockType(blockX as integer, blockY as integer) as integer
+    tx = Int(blockX / 2)
+    ty = blockY
+    mapTile = m.board.map[ty][tx]
+    if isOdd(blockX)
+        return mapTile.r
+    else
+        return mapTile.l
+    end if
+End Function
+
+Function IsLadder(block) as boolean
+    return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER)
+End Function
+
+'------- Numeric and String Functions -------
 
 Function itostr(i as integer) as string
     str = Stri(i)
@@ -134,6 +164,9 @@ Function padLeft(text as string, size as integer) as string
     return text
 End Function
 
+Function IsOdd(number) as boolean
+    return (number mod 2 <> 0)
+End Function
 '------- Device Check Functions -------
 
 Function IsHD()
@@ -259,9 +292,7 @@ Function GetControl(controlMode as integer) as object
             down: false
             left: false
             right: false
-            dig: false
-            digLeft: false
-            digRight: false
+            jump: false
            }
     if controlMode = m.const.CONTROL_VERTICAL
         this.update = update_control_vertical
@@ -285,14 +316,10 @@ Sub update_control_vertical(id as integer)
     else if id = m.code.BUTTON_RIGHT_PRESSED
         m.left = false
         m.right = true
-    else if id = m.code.BUTTON_SELECT_PRESSED
-        m.dig = true
-    else if id = m.code.BUTTON_REWIND_PRESSED
-        m.digLeft = true
-        m.dig = true
-    else if id = m.code.BUTTON_FAST_FORWARD_PRESSED
-        m.digRight = true
-        m.dig = true
+    else if id = m.code.BUTTON_INFO_PRESSED
+        m.jump = true
+    else if id = m.code.BUTTON_A_PRESSED
+        m.jump = true
     else if id = m.code.BUTTON_UP_RELEASED
         m.up = false
     else if id = m.code.BUTTON_DOWN_RELEASED
@@ -303,12 +330,10 @@ Sub update_control_vertical(id as integer)
         m.right = false
     else if id = m.code.BUTTON_SELECT_RELEASED
         m.dig = false
-    else if id = m.code.BUTTON_REWIND_RELEASED
-        m.digLeft = false
-        m.dig = false
+    else if id = m.code.BUTTON_INFO_RELEASED
+        m.jump = false
     else if id = m.code.BUTTON_FAST_FORWARD_RELEASED
-        m.digRight = false
-        m.dig = false
+        m.jump = false
     end if
 End Sub
 
@@ -321,14 +346,10 @@ Sub update_control_horizontal(id as integer)
         m.left = true
     else if id = m.code.BUTTON_DOWN_PRESSED
         m.right = true
-    else if id = m.code.BUTTON_SELECT_PRESSED
-        m.dig = true
+    else if id = m.code.BUTTON_INFO_PRESSED
+        m.jump = true
     else if id = m.code.BUTTON_A_PRESSED
-        m.digLeft = true
-        m.dig = true
-    else if id = m.code.BUTTON_B_PRESSED
-        m.digRight = true
-        m.dig = true
+        m.jump = true
     else if id = m.code.BUTTON_RIGHT_RELEASED
         m.up = false
     else if id = m.code.BUTTON_LEFT_RELEASED
@@ -337,14 +358,10 @@ Sub update_control_horizontal(id as integer)
         m.left = false
     else if id = m.code.BUTTON_DOWN_RELEASED
         m.right = false
-    else if id = m.code.BUTTON_SELECT_RELEASED
-        m.dig = false
+    else if id = m.code.BUTTON_INFO_RELEASED
+        m.jump = false
     else if id = m.code.BUTTON_A_RELEASED
-        m.digLeft = false
-        m.dig = false
-    else if id = m.code.BUTTON_B_RELEASED
-        m.digRight = false
-        m.dig = false
+        m.jump = false
     end if
 End Sub
 
@@ -353,7 +370,5 @@ Sub reset_control()
     m.down = false
     m.left = false
     m.right = false
-    m.dig = false
-    m.digLeft = false
-    m.digRight = false
+    m.jump = false
 End Sub
