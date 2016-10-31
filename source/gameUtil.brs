@@ -21,8 +21,11 @@ Function GetConstants() as object
     const.MOVE_X = 4
     const.MOVE_Y = 2
 
-    const.START_HEALTH = 3
-    const.LIMIT_HEALTH = 5
+    const.START_LIVES = 3
+    const.POINTS_LIFE = 7000
+
+    const.SCORE_BONUS = 5000
+    const.SCORE_JUMP  = 100
 
     const.MENU_START    = 0
     const.MENU_CONTROL  = 1
@@ -37,23 +40,23 @@ Function GetConstants() as object
     const.MAP_BTTM_BROKEN = 5
     const.MAP_FULL_LADDER = 6
     const.MAP_ELEVATOR    = 7
-    const.MAP_CONVEYOR    = 8
+    const.MAP_CONV_BELT   = 8
 
-    const.ACT_NONE  = 0
-    const.ACT_UP    = 1
-    const.ACT_DOWN  = 2
-    const.ACT_LEFT  = 3
-    const.ACT_RIGHT = 4
-    const.ACT_DIG   = 5
-
-    const.SCORE_BONUS = 5000
-    const.SCORE_JUMP  = 100
+    const.ACT_NONE       = 0
+    const.ACT_CLIMB_UP   = 1
+    const.ACT_CLIMB_DOWN = 2
+    const.ACT_RUN_LEFT  = 3
+    const.ACT_RUN_RIGHT = 4
+    const.ACT_JUMP_UP    = 5
+    const.ACT_JUMP_LEFT  = 6
+    const.ACT_JUMP_RIGHT = 7
 
     const.CONTROL_VERTICAL   = 0
     const.CONTROL_HORIZONTAL = 1
 
     const.BOARD_Z = 20
     const.CHARS_Z = 30
+    const.OBJECTS_Z = 40
 
     const.MESSAGEBOX_YES = 1
     const.MESSAGEBOX_NO = 2
@@ -109,8 +112,32 @@ Function GetBlockType(blockX as integer, blockY as integer) as integer
     end if
 End Function
 
+Function IsTileEmpty(block) as boolean
+    return block <> invalid and block = m.const.MAP_EMPTY
+End Function
+
 Function IsLadder(block) as boolean
     return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER)
+End Function
+
+Function IsTopLadder(block) as boolean
+    return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER)
+End Function
+
+Function IsBottomLadder(block) as boolean
+    return block <> invalid and (block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER)
+End Function
+
+Function IsFloor(block) as boolean
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT)
+End Function
+
+Function IsFloorDown(block) as boolean
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_TOP_LADDER)
+End Function
+
+Function IsFloorUp(block) as boolean
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_BTTM_LADDER)
 End Function
 
 '------- Numeric and String Functions -------
@@ -316,9 +343,13 @@ Sub update_control_vertical(id as integer)
     else if id = m.code.BUTTON_RIGHT_PRESSED
         m.left = false
         m.right = true
-    else if id = m.code.BUTTON_INFO_PRESSED
+    else if id = m.code.BUTTON_SELECT_PRESSED
         m.jump = true
-    else if id = m.code.BUTTON_A_PRESSED
+    else if id = m.code.BUTTON_REWIND_PRESSED
+        m.left = true
+        m.jump = true
+    else if id = m.code.BUTTON_FAST_FORWARD_PRESSED
+        m.right = true
         m.jump = true
     else if id = m.code.BUTTON_UP_RELEASED
         m.up = false
@@ -329,10 +360,12 @@ Sub update_control_vertical(id as integer)
     else if id = m.code.BUTTON_RIGHT_RELEASED
         m.right = false
     else if id = m.code.BUTTON_SELECT_RELEASED
-        m.dig = false
-    else if id = m.code.BUTTON_INFO_RELEASED
+        m.jump = false
+    else if id = m.code.BUTTON_REWIND_RELEASED
+        m.left = false
         m.jump = false
     else if id = m.code.BUTTON_FAST_FORWARD_RELEASED
+        m.right = false
         m.jump = false
     end if
 End Sub
@@ -349,6 +382,10 @@ Sub update_control_horizontal(id as integer)
     else if id = m.code.BUTTON_INFO_PRESSED
         m.jump = true
     else if id = m.code.BUTTON_A_PRESSED
+        m.left = true
+        m.jump = true
+    else if id = m.code.BUTTON_B_PRESSED
+        m.right = true
         m.jump = true
     else if id = m.code.BUTTON_RIGHT_RELEASED
         m.up = false
@@ -361,6 +398,10 @@ Sub update_control_horizontal(id as integer)
     else if id = m.code.BUTTON_INFO_RELEASED
         m.jump = false
     else if id = m.code.BUTTON_A_RELEASED
+        m.left = false
+        m.jump = false
+    else if id = m.code.BUTTON_B_RELEASED
+        m.right = false
         m.jump = false
     end if
 End Sub

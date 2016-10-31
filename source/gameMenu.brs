@@ -132,7 +132,7 @@ Sub ShowCredits(waitTime = 0 as integer)
 End Sub
 
 Function CheckHighScores() as boolean
-    if m.runner.usedCheat then return false
+    if m.jumpman.usedCheat then return false
     counter = 0
     index = -1
     max = 10

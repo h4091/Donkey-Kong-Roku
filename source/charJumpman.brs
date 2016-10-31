@@ -15,15 +15,17 @@ Function CreateJumpman(board as object) as object
     this.const = m.const
     this.STATE_STOP = 0
     this.STATE_MOVE = 1
-    this.STATE_FALL = 2
+    this.STATE_JUMP = 2
+    this.STATE_FALL = 3
 	'Controller
 	this.cursors = GetControl(m.settings.controlMode)
     this.sounds = m.sounds
     'Properties
+    this.alive = false
     this.anims = m.anims
     this.charType = "jumpman"
     this.usedCheat = false
-    this.health = m.const.START_HEALTH
+    this.lives = m.const.START_LIVES
     'Methods
     this.startBoard = start_board_jumpman
     this.update = update_jumpman
@@ -42,7 +44,6 @@ Function CreateJumpman(board as object) as object
 End Function
 
 Sub start_board_jumpman(board as object)
-    m.alive = true
     m.board = board
     m.blockX = board.jumpman.blockX
     m.blockY = board.jumpman.blockY
@@ -64,29 +65,25 @@ Sub update_jumpman()
         return
     end if
     'Update jumpman position
-    if m.state = m.STATE_FALL
+    if m.state > m.STATE_MOVE
         m.move(m.const.ACT_NONE)
+    else if m.keyJ() and m.keyR()
+        m.move(m.const.ACT_JUMP_RIGHT)
+    else if m.keyJ() and m.keyL()
+        m.move(m.const.ACT_JUMP_LEFT)
     else if m.keyJ()
-        m.move(m.const.ACT_JUMP)
+        m.move(m.const.ACT_JUMP_UP)
     else if m.keyU()
-        m.move(m.const.ACT_UP)
+        m.move(m.const.ACT_CLIMB_UP)
     else if m.keyD()
-        m.move(m.const.ACT_DOWN)
+        m.move(m.const.ACT_CLIMB_DOWN)
     else if m.keyL()
-        m.move(m.const.ACT_LEFT)
+        m.move(m.const.ACT_RUN_LEFT)
     else if m.keyR()
-        m.move(m.const.ACT_RIGHT)
+        m.move(m.const.ACT_RUN_RIGHT)
     else
         m.move(m.const.ACT_NONE)
     end if
-    'Falling sound
-    ' if m.state = m.STATE_FALL and m.level.status <> m.const.LEVEL_STARTUP
-    '     if m.sounds.wav.clip <> "fall" or m.sounds.wav.cycles = 0
-    '         PlaySound("fall")
-    '     end if
-    ' else if m.sounds.wav.clip = "fall"
-    '     StopSound()
-    ' end if
     'Update animation frame
     m.frameUpdate()
 End Sub
@@ -97,7 +94,13 @@ Sub frame_update_jumpman()
         actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
         m.frameName = "mario-" + itostr(actionArray[m.frame].id)
         m.frame++
-        if m.frame >= actionArray.Count() then m.frame = 0
+        if m.frame >= actionArray.Count()
+            if m.state = m.STATE_MOVE
+                m.frame = 0
+            else
+                m.frame = actionArray.Count() - 1
+            end if
+        end if
     end if
 End Sub
 
@@ -108,76 +111,202 @@ Sub move_jumpman(action)
     if m.blockY > 0 then upBlock = GetBlockType(m.blockX, m.blockY - 1)
     if m.blockY < m.const.BLOCKS_Y - 1 then downBlock = GetBlockType(m.blockX, m.blockY + 1)
     'Update char position
-    m.state = m.STATE_STOP
-    if action = m.const.ACT_JUMP
-        'PlaySound("jump")
-    else if action = m.const.ACT_UP
-        if m.charAction = "standUp" and m.frame = 3
+    if m.state < m.STATE_JUMP then m.state = m.STATE_STOP
+    if action = m.const.ACT_CLIMB_UP
+        curFloor = GetFloorOffset(m.blockX, m.blockY)
+        if m.charAction = "standUp" and m.frame = 11
             m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            m.charAction = "stand"
             m.state = m.STATE_STOP
-        else if IsLadder(curBlock) or (IsLadder(downBlock) and m.offsetY > GetFloorOffset(m.blockX, m.blockY))
+        else if IsTopLadder(curBlock) or (IsBottomLadder(curBlock) and curFloor <> m.offsetY) or (IsLadder(downBlock) and m.offsetY > curFloor and not IsTileEmpty(curBlock)) or (curFloor = 0 and IsLadder(upBlock))
             if m.charAction <> "runUpDown" and m.charAction <> "standUp"
                 m.charAction = "runUpDown"
                 m.frame = 0
             end if
             m.state = m.STATE_MOVE
             m.offsetX = -7
-            m.offsetY -= m.const.MOVE_Y
+            m.offsetY -= m.frameOffsetY()
             if m.offsetY < 0
                 m.blockY--
                 m.offsetY += m.const.BLOCK_HEIGHT
-                if m.offsetY <= GetFloorOffset(m.blockX, m.blockY)
+            end if
+            upFloor = GetFloorOffset(m.blockX, m.blockY - 1)
+            if m.charAction <> "standUp" and ((IsFloorUp(upblock) and upFloor > 0) or (IsFloorUp(curBlock) and curFloor = 0))
+                if curFloor = 0
+                    limitY = m.const.BLOCK_HEIGHT - 6
+                else
+                    limitY = upFloor - 6
+                end if
+                print "limitY="; limitY
+                if m.offsetY <= limitY
+                    print "standing up"
                     m.charAction = "standUp"
                     m.frame = 0
                 end if
             end if
         end if
-    else if action = m.const.ACT_DOWN
-        if (IsLadder(curBlock) and m.offsetY <= GetFloorOffset(m.blockX, m.blockY)) or IsLadder(downBlock)
+    else if action = m.const.ACT_CLIMB_DOWN
+        if (IsLadder(curBlock) and m.offsetY < GetFloorOffset(m.blockX, m.blockY)) or IsLadder(downBlock)
             if m.charAction <> "runUpDown"
                 m.charAction = "runUpDown"
                 m.frame = 0
             end if
             m.state = m.STATE_MOVE
             m.offsetX = -7
-            m.offsetY += m.const.MOVE_Y
+            m.offsetY += m.frameOffsetY()
             if m.offsetY >= m.const.BLOCK_HEIGHT
                 m.blockY++
                 m.offsetY -= m.const.BLOCK_HEIGHT
-                if m.offsetY < m.const.MOVE_Y then m.offsetY = 0
             end if
         end if
-    else if action = m.const.ACT_LEFT
-        if m.charAction <> "runLeft"
-             m.charAction = "runLeft"
-             m.frame = 0
-        end if
-        if m.blockX > 0 or m.offsetX > 0
-            m.state = m.STATE_MOVE
-            m.offsetX -= m.frameOffsetX()
-            if m.blockX > 0 and m.offsetX <= 0
-                m.blockX--
-                m.offsetX += m.const.BLOCK_WIDTH
+    else if action = m.const.ACT_RUN_LEFT
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            if m.charAction <> "runLeft"
+                 m.charAction = "runLeft"
+                 m.frame = 0
             end if
-            m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-        end if
-    else if action = m.const.ACT_RIGHT
-        if m.charAction <> "runRight"
-            m.charAction = "runRight"
-            m.frame = 0
-        end if
-        if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
-            m.state = m.STATE_MOVE
-            m.offsetX += m.frameOffsetX()
-            if m.offsetX >= m.const.BLOCK_WIDTH / 4
-                m.blockX++
-                m.offsetX -= m.const.BLOCK_WIDTH
+            if m.blockX > 0 or m.offsetX > 0
+                m.state = m.STATE_MOVE
+                m.offsetX -= m.frameOffsetX()
+                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                    m.blockX--
+                    m.offsetX += m.const.BLOCK_WIDTH
+                end if
+                if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
+                if GetFloorOffset(m.blockX, m.blockY) = -1
+                    if IsTileEmpty(downBlock)
+                        print "start fall"
+                        'm.state = m.STATE_FALL
+                    else if downBlock <> invalid
+                        newFloor = GetFloorOffset(m.blockX, m.blockY + 1)
+                        if m.offsetY + newFloor > m.const.BLOCK_HEIGHT
+                            print "start fall"
+                            'm.state = m.STATE_FALL
+                        else
+                            m.blockY++
+                            m.offsetY = newFloor
+                        end if
+                    end if
+                else
+                    m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+                    if m.offsetY < 0 and m.blockY > 0
+                        print "up"
+                        m.blockY--
+                        m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+                    end if
+                end if
             end if
-            m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-        else if m.offsetX < 0
+        end if
+    else if action = m.const.ACT_RUN_RIGHT
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            if m.charAction <> "runRight"
+                m.charAction = "runRight"
+                m.frame = 0
+            end if
+            if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
+                m.state = m.STATE_MOVE
+                m.offsetX += m.frameOffsetX()
+                if m.offsetX >= m.const.BLOCK_WIDTH / 4
+                    m.blockX++
+                    m.offsetX -= m.const.BLOCK_WIDTH
+                end if
+                if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
+                if GetFloorOffset(m.blockX, m.blockY) = -1
+                    if IsTileEmpty(downBlock)
+                        print "start fall"
+                        'm.state = m.STATE_FALL
+                    else if downBlock <> invalid
+                        newFloor = GetFloorOffset(m.blockX, m.blockY + 1)
+                        if m.offsetY + newFloor > m.const.BLOCK_HEIGHT
+                            print "start fall"
+                            'm.state = m.STATE_FALL
+                        else
+                            m.blockY++
+                            m.offsetY = newFloor
+                        end if
+                    end if
+                else
+                    m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+                    if m.offsetY < 0 and m.blockY > 0
+                        m.blockY--
+                        m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+                    end if
+                end if
+            end if
+        end if
+    else if action = m.const.ACT_JUMP_UP
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            if m.blockX > 0 or m.offsetX > 0
+                if Left(m.charAction, 4) <> "jump"
+                    if m.charAction = "runLeft"
+                        m.charAction = "jumpLeft"
+                    else
+                        m.charAction = "jumpRight"
+                    end if
+                    m.jumpUp = true
+                    m.frame = 0
+                end if
+                m.state = m.STATE_JUMP
+            end if
+        end if
+    else if action = m.const.ACT_JUMP_LEFT
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            if m.blockX > 0 or m.offsetX > 0
+                if m.charAction <> "jumpLeft"
+                    m.charAction = "jumpLeft"
+                    m.frame = 0
+                    m.jumpUp = false
+                end if
+                m.state = m.STATE_JUMP
+            end if
+        end if
+    else if action = m.const.ACT_JUMP_RIGHT
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
+                if m.charAction <> "jumpRight"
+                    m.charAction = "jumpRight"
+                    m.frame = 0
+                    m.jumpUp = false
+                end if
+                m.state = m.STATE_JUMP
+            end if
+        end if
+    end if
+    'Update jump
+    if m.state = m.STATE_JUMP
+        curFloor = GetFloorOffset(m.blockX, m.blockY)
+        if m.frame > 0 and IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
+            if m.charAction = "jumpLeft"
+                m.charAction = "runLeft"
+            else
+                m.charAction = "runRight"
+            end if
+            m.frame = 2
             m.state = m.STATE_MOVE
-            m.offsetX += m.const.MOVE_X
-            m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            m.offsetY = curFloor
+        else
+            if not m.jumpUp
+                if m.charAction = "jumpLeft"
+                    m.offsetX -= m.frameOffsetX()
+                else
+                    m.offsetX += m.frameOffsetX()
+                end if
+                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                    m.blockX--
+                    m.offsetX += m.const.BLOCK_WIDTH
+                else if m.offsetX >= m.const.BLOCK_WIDTH / 4
+                    m.blockX++
+                    m.offsetX -= m.const.BLOCK_WIDTH
+                end if
+            end if
+            m.offsetY -= m.frameOffsetY()
+            if m.offsetY < 0
+                m.blockY--
+                m.offsetY += m.const.BLOCK_HEIGHT
+            else if m.offsetY >= m.const.BLOCK_HEIGHT
+                m.blockY++
+                m.offsetY -= m.const.BLOCK_HEIGHT
+            end if
         end if
     end if
     'Update fall
@@ -188,11 +317,10 @@ Sub move_jumpman(action)
     '         m.blockY++
     '         m.offsetY -= m.const.BLOCK_HEIGHT
     '         if m.offsetY < m.const.MOVE_Y then m.offsetY = 0
-    '         if m.charType = "guard" then m.tryDropGold()
     '     end if
     ' end if
     if action <> m.const.ACT_NONE
-        print "position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY
+        print "position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY; " - Floor=";GetFloorOffset(m.blockX, m.blockY)
     end if
 End Sub
 
@@ -203,7 +331,7 @@ End Function
 
 Function frame_offset_y() as integer
     actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
-    return actionArray[m.frame].x
+    return actionArray[m.frame].y
 End Function
 
 '------------ Remote Control Methods ------------

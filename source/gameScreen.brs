@@ -35,15 +35,12 @@ Function PlayGame() as boolean
             else if id = m.code.BUTTON_PLAY_PRESSED
                 PauseGame()
             else if id = m.code.BUTTON_INFO_PRESSED
-                if m.jumpman.health < m.const.LIMIT_HEALTH
-                    m.jumpman.health++
+                if m.jumpman.lives < m.const.START_LIVES + 1
+                    m.jumpman.lives++
                     m.jumpman.usedCheat = true
                 end if
-            else if ControlNextLevel(id)
-                NextLevel()
-                m.jumpman.usedCheat = true
-            else if ControlPreviousLevel(id)
-                PreviousLevel()
+            else if ControlNext(id)
+                NextBoard()
                 m.jumpman.usedCheat = true
             else
                 m.jumpman.cursors.update(id)
@@ -52,13 +49,16 @@ Function PlayGame() as boolean
             'Game screen process
             ticks = m.clock.TotalMilliseconds()
             if ticks > m.speed
-                if m.newLevel then LevelStartup()
                 'Update sprites
-                if m.board.redraw then DrawBoard()
-                JumpmanUpdate()
+                if m.board.redraw
+                    DrawBoard()
+                    DrawObjects()
+                end if
                 KongUpdate()
                 LadyUpdate()
                 ObjectsUpdate()
+                if m.startup then BoardStartup()
+                JumpmanUpdate()
                 'SoundUpdate()
                 'Paint Screen
                 m.mainScreen.Clear(0)
@@ -71,11 +71,10 @@ Function PlayGame() as boolean
                 if not m.gameOver
                     if not m.jumpman.alive
                         'PlaySound("dead")
-                        m.jumpman.health--
-                        if m.jumpman.health > 0
-                            ResetGame()
-                        else
+                        if m.jumpman.lives = 0
                             m.gameOver = true
+                        else
+                            ResetGame()
                         end if
                     else
                         m.gameOver = CheckLevelSuccess()
@@ -88,6 +87,7 @@ Function PlayGame() as boolean
                     changed = CheckHighScores()
                     DestroyChars()
                     DestroyStage()
+                    m.jumpman = invalid
                     return changed
                 end if
             end if
@@ -108,7 +108,31 @@ Sub DrawBoard()
     m.board.redraw = false
 End Sub
 
+Sub DrawObjects()
+    for i = 0 to m.objects.Count() - 1
+        obj = m.objects[i]
+        region = m.regions.objects.Lookup(obj.frameName)
+        if region <> invalid
+            x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+            y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+            if obj.sprite = invalid
+                obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, m.const.OBJECTS_Z)
+                obj.sprite.SetData(obj.name)
+            else
+                obj.sprite.SetRegion(region)
+                obj.sprite.MoveTo(x, y + m.yOff)
+            end if
+        end if
+    next
+End Sub
+
 Sub DrawScore()
+    'Paint lifes
+    life = m.regions.objects.Lookup("life")
+    for t = 1 to m.jumpman.lives
+        m.gameScreen.DrawObject(16 * t, 12, life)
+    next
+    'Paint score
     leftOff = ((m.mainWidth - 640) / 2)
     m.gameLeft.DrawText("1UP", leftOff + 24, 12, m.colors.red, m.gameFont)
     m.gameLeft.DrawText(zeroPad(m.gameScore, 6), leftOff, 28, m.colors.white, m.gameFont)
@@ -144,6 +168,8 @@ Sub JumpmanUpdate()
                     else
                         AddScore(800)
                     end if
+                else if objName = "lady"
+                    print "kiss pauline!"
                 else if objName = "hammer"
                     print "got hammer!"
                 else if objName = "oil"
@@ -153,6 +179,8 @@ Sub JumpmanUpdate()
                 end if
             end if
         end if
+    else
+        print "invalid region: ";m.jumpman.frameName
     end if
 End Sub
 
@@ -189,25 +217,19 @@ Sub LadyUpdate()
 End Sub
 
 Sub ObjectsUpdate()
-    for i = 0 to m.objects.Count() - 1
-        obj = m.objects[i]
-        region = m.regions.objects.Lookup(obj.frameName)
-        if region <> invalid
-            x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
-            y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
-            if obj.sprite = invalid
-                obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, m.const.CHARS_Z)
-                obj.sprite.SetData(obj.name)
-            else
-                obj.sprite.SetRegion(region)
-                obj.sprite.MoveTo(x, y + m.yOff)
-            end if
-        end if
-    next
+
 End Sub
 
-Sub LevelStartup()
-    m.newLevel = false
+Sub BoardStartup()
+    m.compositor.DrawAll()
+    DrawScore()
+    m.mainScreen.SwapBuffers()
+    Sleep(1000)
+    if not m.jumpman.alive
+        m.jumpman.alive = true
+        m.jumpman.lives--
+    end if
+    m.startup = false
 End Sub
 
 Function CheckLevelSuccess() as boolean
@@ -234,7 +256,6 @@ Sub DestroyChars()
             m.jumpman.sprite.Remove()
             m.jumpman.sprite = invalid
         end if
-        m.jumpman = invalid
     end if
     if m.objects <> invalid
         for i = 0 to m.objects.Count()
@@ -257,21 +278,38 @@ Sub DestroyStage()
 End Sub
 
 Sub PauseGame()
-
+    text = "GAME  PAUSED"
+    textWidth = m.gameFont.GetOneLineWidth(text, m.gameWidth)
+    textHeight = m.gameFont.GetOneLineHeight()
+    x = Cint((m.gameWidth - textWidth) / 2)
+    y = 308
+    m.gameScreen.DrawRect(x - 32, y - 32, textWidth + 64, textHeight + 64, m.colors.black)
+    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColor, 0), m.gameFont)
+    m.mainScreen.SwapBuffers()
+    while true
+        key = wait(0, m.port)
+        if key = m.code.BUTTON_PLAY_PRESSED then exit while
+    end while
 End Sub
 
 Sub GameOver()
-
+    text = "GAME  OVER"
+    textWidth = m.gameFont.GetOneLineWidth(text, m.gameWidth)
+    textHeight = m.gameFont.GetOneLineHeight()
+    x = Cint((m.gameWidth - textWidth) / 2)
+    y = 308
+    m.gameScreen.DrawRect(x - 32, y - 32, textWidth + 64, textHeight + 64, m.colors.black)
+    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColor, 0), m.gameFont)
+    m.mainScreen.SwapBuffers()
+    while true
+        key = wait(3000, m.port)
+        if key = invalid or key < 100 then exit while
+    end while
+    'ClearSavedGame()
 End Sub
 
-Function ControlNextLevel(id as integer) as boolean
+Function ControlNext(id as integer) as boolean
     vStatus = m.settings.controlMode = m.const.CONTROL_VERTICAL and id = m.code.BUTTON_A_PRESSED
     hStatus = m.settings.controlMode = m.const.CONTROL_HORIZONTAL and id = m.code.BUTTON_FAST_FORWARD_PRESSED
-    return vStatus or hStatus
-End Function
-
-Function ControlPreviousLevel(id as integer) as boolean
-    vStatus = m.settings.controlMode = m.const.CONTROL_VERTICAL and id = m.code.BUTTON_B_PRESSED
-    hStatus = m.settings.controlMode = m.const.CONTROL_HORIZONTAL and id = m.code.BUTTON_REWIND_PRESSED
     return vStatus or hStatus
 End Function

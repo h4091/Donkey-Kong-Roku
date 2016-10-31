@@ -48,7 +48,6 @@ Sub Main()
             m.highScore = 0 'To be implemented
             m.currentLevel = 1
             m.currentBoard = 1
-            m.newLevel = true
             ResetGame()
             PlayIntro(3000)
             if PlayGame() then ShowHighScores(5000)
@@ -89,25 +88,13 @@ Sub PlayIntro(waitTime as integer)
 	end while
 End Sub
 
-Sub NextLevel()
+Sub NextBoard()
     g = GetGlobalAA()
     if g.currentBoard = g.level.Count()
         g.currentBoard = 1
         g.currentLevel++
-        g.newLevel = true
     else
         g.currentBoard++
-    end if
-    ResetGame()
-End Sub
-
-Sub PreviousLevel()
-    g = GetGlobalAA()
-    if g.currentBoard = 1
-        g.currentBoard = g.level.Count()
-        g.currentLevel--
-    else
-        g.currentBoard--
     end if
     ResetGame()
 End Sub
@@ -181,12 +168,16 @@ Sub ResetGame()
     else
         g.jumpman.startBoard(g.board)
     end if
+    m.startup = true
     'StopAudio()
     'StopSound()
 End Sub
 
 Sub AddScore(points as integer)
     g = GetGlobalAA()
+    if g.gameScore < m.const.POINTS_LIFE and g.gameScore + points > m.const.POINTS_LIFE
+        g.jumpman.lives++
+    end if
     g.gameScore += points
     if g.gameScore > m.highScore then g.highScore = g.gameScore
 End Sub
