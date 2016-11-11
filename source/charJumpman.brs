@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: October 2016
+' **  Updated: November 2016
 ' **
 ' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -30,6 +30,7 @@ Function CreateJumpman(board as object) as object
     this.startBoard = start_board_jumpman
     this.update = update_jumpman
     this.move = move_jumpman
+    this.startFall = start_fall_jumpman
     this.frameUpdate = frame_update_jumpman
     this.frameOffsetX = frame_offset_x
     this.frameOffsetY = frame_offset_y
@@ -90,7 +91,7 @@ End Sub
 
 Sub frame_update_jumpman()
     'Update animation frame
-    if m.state <> m.STATE_STOP
+    if m.state <> m.STATE_STOP and m.state <> m.STATE_FALL
         actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
         m.frameName = "mario-" + itostr(actionArray[m.frame].id)
         m.frame++
@@ -175,13 +176,11 @@ Sub move_jumpman(action)
                 if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
                 if GetFloorOffset(m.blockX, m.blockY) = -1
                     if IsTileEmpty(downBlock)
-                        print "start fall"
-                        'm.state = m.STATE_FALL
+                        m.startFall()
                     else if downBlock <> invalid
                         newFloor = GetFloorOffset(m.blockX, m.blockY + 1)
                         if m.offsetY + newFloor > m.const.BLOCK_HEIGHT
-                            print "start fall"
-                            'm.state = m.STATE_FALL
+                            m.startFall()
                         else
                             m.blockY++
                             m.offsetY = newFloor
@@ -213,13 +212,11 @@ Sub move_jumpman(action)
                 if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
                 if GetFloorOffset(m.blockX, m.blockY) = -1
                     if IsTileEmpty(downBlock)
-                        print "start fall"
-                        'm.state = m.STATE_FALL
+                        m.startFall()
                     else if downBlock <> invalid
                         newFloor = GetFloorOffset(m.blockX, m.blockY + 1)
                         if m.offsetY + newFloor > m.const.BLOCK_HEIGHT
-                            print "start fall"
-                            'm.state = m.STATE_FALL
+                            m.startFall()
                         else
                             m.blockY++
                             m.offsetY = newFloor
@@ -243,32 +240,43 @@ Sub move_jumpman(action)
                     else
                         m.charAction = "jumpRight"
                     end if
-                    m.jumpUp = true
                     m.frame = 0
                 end if
+                m.jump = action
                 m.state = m.STATE_JUMP
+                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
             end if
         end if
     else if action = m.const.ACT_JUMP_LEFT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
             if m.blockX > 0 or m.offsetX > 0
-                if m.charAction <> "jumpLeft"
-                    m.charAction = "jumpLeft"
+                if Left(m.charAction, 4) <> "jump"
+                    if m.charAction = "runLeft"
+                        m.charAction = "jumpLeft"
+                    else
+                        m.charAction = "jumpRight"
+                    end if
                     m.frame = 0
-                    m.jumpUp = false
                 end if
+                m.jump = action
                 m.state = m.STATE_JUMP
+                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
             end if
         end if
     else if action = m.const.ACT_JUMP_RIGHT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
             if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
-                if m.charAction <> "jumpRight"
-                    m.charAction = "jumpRight"
+                if Left(m.charAction, 4) <> "jump"
+                    if m.charAction = "runLeft"
+                        m.charAction = "jumpLeft"
+                    else
+                        m.charAction = "jumpRight"
+                    end if
                     m.frame = 0
-                    m.jumpUp = false
                 end if
+                m.jump = action
                 m.state = m.STATE_JUMP
+                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
             end if
         end if
     end if
@@ -284,9 +292,15 @@ Sub move_jumpman(action)
             m.frame = 2
             m.state = m.STATE_MOVE
             m.offsetY = curFloor
+            fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
+            if fallHeight  >= m.const.BLOCK_HEIGHT
+                print "landed dead "; fallHeight
+            else
+                print "landed safe "; fallHeight
+            end if
         else
-            if not m.jumpUp
-                if m.charAction = "jumpLeft"
+            if m.jump <> m.const.ACT_JUMP_UP
+                if m.jump = m.const.ACT_JUMP_LEFT
                     m.offsetX -= m.frameOffsetX()
                 else
                     m.offsetX += m.frameOffsetX()
@@ -308,20 +322,37 @@ Sub move_jumpman(action)
                 m.offsetY -= m.const.BLOCK_HEIGHT
             end if
         end if
+    else if m.state = m.STATE_FALL 'Update fall
+        curFloor = GetFloorOffset(m.blockX, m.blockY)
+        if m.frame > 0 and IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
+            m.frame = 2
+            m.state = m.STATE_MOVE
+            m.offsetY = curFloor
+            fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
+            if fallHeight  >= m.const.BLOCK_HEIGHT
+                print "landed dead "; fallHeight
+            else
+                print "landed safe "; fallHeight
+            end if
+        else
+            m.offsetX = 0
+            m.offsetY += 2
+            if m.offsetY >= m.const.BLOCK_HEIGHT
+                m.blockY++
+                m.offsetY -= m.const.BLOCK_HEIGHT
+                if m.offsetY < 2 then m.offsetY = 0
+            end if
+        end if
     end if
-    'Update fall
-    ' if m.state = m.STATE_FALL
-    '     m.offsetX = 0
-    '     m.offsetY += m.const.MOVE_Y
-    '     if m.offsetY >= m.const.BLOCK_HEIGHT
-    '         m.blockY++
-    '         m.offsetY -= m.const.BLOCK_HEIGHT
-    '         if m.offsetY < m.const.MOVE_Y then m.offsetY = 0
-    '     end if
-    ' end if
     if action <> m.const.ACT_NONE
         print "position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY; " - Floor=";GetFloorOffset(m.blockX, m.blockY)
     end if
+End Sub
+
+Sub start_fall_jumpman()
+    print "start fall"
+    m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
+    m.state = m.STATE_FALL
 End Sub
 
 Function frame_offset_x() as integer

@@ -10,6 +10,7 @@
     "board-1": {
         "name": "barrels",
         "fontColor": "0x00FFFFFF",
+        "complete": {"y": 1, "o": 16},
         "map": [
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o":17,"l":6,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
@@ -27,7 +28,7 @@
             [{"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}, {"o":17,"l":1,"r":1}, {"o":15,"l":1,"r":1}, {"o":13,"l":1,"r":1}, {"o":11,"l":1,"r":1}, {"o": 9,"l":1,"r":1}, {"o": 7,"l":1,"r":2}, {"o": 5,"l":1,"r":1}, {"o": 3,"l":1,"r":1}]
         ],
         "kong": {"blockX": 3, "blockY": 3},
-        "lady": {"blockX": 11, "blockY": 1},
+        "lady": {"blockX": 11, "blockY": 1, "face": 2, "help": "cyan"},
         "jumpman": {"blockX": 5, "blockY": 13},
         "objects": [{"name": "barrels", "blockX": 0, "blockY": 3, "offsetY": 9},
                     {"name": "oil", "blockX": 2, "blockY": 13, "offsetY": 17},
@@ -37,6 +38,7 @@
     "board-2": {
         "name": "conveyors",
         "fontColor": "0xFFFFFFFF",
+        "complete": {"y": 3, "o": 16},
         "map": [
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o":17,"l":6,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
@@ -54,7 +56,7 @@
             [{"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}, {"o":17,"l":1,"r":1}]
         ],
         "kong": {"blockX": 10.5, "blockY": 3},
-        "lady": {"blockX": 11, "blockY": 1},
+        "lady": {"blockX": 11, "blockY": 1, "face": 2, "help": "white"},
         "jumpman": {"blockX": 5, "blockY": 13},
         "objects": [{"name": "hat", "blockX": 7.5, "blockY": 8, "offsetY": 16},
                     {"name": "parasol", "blockX": 24.5, "blockY": 8, "offsetY": 16},
@@ -72,6 +74,7 @@
     "board-3": {
         "name": "elevators",
         "fontColor": "0x00FFFFFF",
+        "complete": {"y": 1, "o": 16},
         "map": [
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":6,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":6,"r":0}, {"o":17,"l":6,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}],
@@ -89,15 +92,21 @@
             [{"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}]
         ],
         "kong": {"blockX": 3, "blockY": 3},
-        "lady": {"blockX": 11, "blockY": 1},
+        "lady": {"blockX": 11, "blockY": 1, "face": 2, "help": "cyan"},
         "jumpman": {"blockX": 0, "blockY": 12},
-        "objects": [{"name": "hat", "blockX": 8.5, "blockY": 10, "offsetY": 32},
-                    {"name": "parasol", "blockX": 0.5, "blockY": 6, "offsetY": 16},
-                    {"name": "purse", "blockX": 26, "blockY": 4, "offsetY": 16},
-                    {"name": "elevator-1", "blockX": 4, "blockY": 4, "offsetY": 17},
-                    {"name": "elevator-2", "blockX": 4, "blockY": 13, "offsetY": 31},
-                    {"name": "elevator-1", "blockX":12, "blockY": 4, "offsetY": 17},
-                    {"name": "elevator-2", "blockX":12, "blockY": 13, "offsetY": 31}]
+        "objects": [{"name": "hat", "blockX": 8.5, "blockY":10, "offsetY":32},
+                    {"name": "parasol", "blockX": 0.5, "blockY":6, "offsetY":16},
+                    {"name": "purse", "blockX":26, "blockY": 4, "offsetY":16},
+                    {"name": "elevator-1", "blockX": 4, "blockY": 4, "offsetY":17, "up": true},
+                    {"name": "platform", "blockX": 4, "blockY": 7, "offsetY": 3},
+                    {"name": "platform", "blockX": 4, "blockY":10, "offsetY":11},
+                    {"name": "platform", "blockX": 4, "blockY":13, "offsetY":19},
+                    {"name": "elevator-2", "blockX": 4, "blockY":13, "offsetY":31},
+                    {"name": "elevator-1", "blockX":12, "blockY": 4, "offsetY":17, "up": false},
+                    {"name": "platform", "blockX":12, "blockY": 5, "offsetY": 9},
+                    {"name": "platform", "blockX":12, "blockY": 8, "offsetY":17},
+                    {"name": "platform", "blockX":12, "blockY":11, "offsetY":25},
+                    {"name": "elevator-2", "blockX":12, "blockY":13, "offsetY": 31}]
     },
     "board-4": {
         "name": "rivets",
@@ -119,11 +128,19 @@
             [{"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}]
         ],
         "kong": {"blockX": 11.5, "blockY": 3},
-        "lady": {"blockX": 13, "blockY": 1},
+        "lady": {"blockX": 13, "blockY": 1, "face": 0, "help": "blue"},
         "jumpman": {"blockX": 5, "blockY": 13},
-        "objects": [{"name": "parasol", "blockX": 3.5, "blockY": 3, "offsetY": 16},
-                    {"name": "hat", "blockX": 24.5, "blockY": 11, "offsetY": 0},
-                    {"name": "purse", "blockX": 16, "blockY": 13, "offsetY": 16},
+        "objects": [{"name": "parasol", "blockX": 3.5, "blockY": 3, "offsetY": 16, "cx": 15, "cy": 30, "cw": 2, "ch": 2},
+                    {"name": "hat", "blockX": 24.5, "blockY": 11, "offsetY": 0, "cx": 15, "cy": 30, "cw": 2, "ch": 2},
+                    {"name": "purse", "blockX": 16, "blockY": 13, "offsetY": 16, "cx": 15, "cy": 30, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX": 7, "blockY": 4, "offsetY":15, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX":20, "blockY": 4, "offsetY":15, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX": 7, "blockY": 6, "offsetY":31, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX":20, "blockY": 6, "offsetY":31, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX": 7, "blockY": 9, "offsetY":15, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX":20, "blockY": 9, "offsetY":15, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX": 7, "blockY":11, "offsetY":31, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
+                    {"name": "rivet", "blockX":20, "blockY":11, "offsetY":31, "cx": 7, "cy": 0, "cw": 2, "ch": 2},
                     {"name": "hammer", "blockX": 13, "blockY": 4, "offsetY": 26},
                     {"name": "hammer", "blockX":  1, "blockY": 7, "offsetY": 0}]
     }

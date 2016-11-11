@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: October 2016
+' **  Updated: November 2016
 ' **
 ' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -50,6 +50,7 @@ Sub Main()
             m.currentBoard = 1
             ResetGame()
             PlayIntro(3000)
+            LevelHeightScreen()
             if PlayGame() then ShowHighScores(5000)
         else if selection = m.const.MENU_CREDITS
             ShowCredits()
@@ -88,17 +89,6 @@ Sub PlayIntro(waitTime as integer)
 	end while
 End Sub
 
-Sub NextBoard()
-    g = GetGlobalAA()
-    if g.currentBoard = g.level.Count()
-        g.currentBoard = 1
-        g.currentLevel++
-    else
-        g.currentBoard++
-    end if
-    ResetGame()
-End Sub
-
 Sub ResetGame()
     g = GetGlobalAA()
     print "Reseting Level "; itostr(g.currentLevel)
@@ -116,6 +106,8 @@ Sub ResetGame()
     end if
     g.board = g.maps.boards.Lookup("board-" + itostr(g.level[m.currentBoard-1]))
     g.board.redraw = true
+    g.rivets = 0
+    g.elevators = []
     'Create Objects
     if g.objects = invalid
         g.objects = []
@@ -132,7 +124,35 @@ Sub ResetGame()
             end if
             g.objects[i].frameName = obj.name
             g.objects[i].frame = 0
+            if obj.cx <> invalid
+                g.objects[i].cx = obj.cx
+                g.objects[i].cy = obj.cy
+                g.objects[i].cw = obj.cw
+                g.objects[i].ch = obj.ch
+            end if
+            g.objects[i].z = g.const.OBJECTS_Z
+            if obj.name = "rivet"
+                g.rivets++
+            else if obj.name = "elevator-1"
+                g.objects[i].z = g.const.OBJECTS_Z + 1
+                elevator = {up: obj.up, t: obj.blockY, ot: obj.offsetY, p:[]}
+            else if obj.name = "platform"
+                g.objects[i].elevator = g.elevators.Count()
+                g.objects[i].platform = elevator.p.Count()
+                elevator.p.Push({y: obj.blockY, o: obj.offsetY})
+            else if obj.name = "elevator-2"
+                g.objects[i].z = g.const.OBJECTS_Z + 1
+                elevator.b  = obj.blockY
+                elevator.ob = obj.offsetY
+                g.elevators.Push(elevator)
+            end if
         next
+    end if
+    'Create Jumpman
+    if g.jumpman = invalid
+        g.jumpman = CreateJumpman(g.board)
+    else
+        g.jumpman.startBoard(g.board)
     end if
     'Create Kong
     if g.kong = invalid
@@ -140,11 +160,7 @@ Sub ResetGame()
         g.kong.blockX = g.board.kong.blockX
         g.kong.blockY = g.board.kong.blockY
         g.kong.offsetX = 0
-        if g.board.map.Count() > 0
-            g.kong.offsetY = g.board.map[g.kong.blockY][Int(g.kong.blockX / 2)].o - 1
-        else
-            g.kong.offsetY = 0
-        end if
+        g.kong.offsetY = g.board.map[g.kong.blockY][Int(g.kong.blockX / 2)].o - 1
         g.kong.frameName = "kong-1"
         g.kong.frame = 0
     end if
@@ -154,19 +170,10 @@ Sub ResetGame()
         g.lady.blockX = g.board.lady.blockX
         g.lady.blockY = g.board.lady.blockY
         g.lady.offsetX = 0
-        if g.board.map.Count() > 0
-            g.lady.offsetY = g.board.map[g.lady.blockY][Int(g.lady.blockX / 2)].o - 1
-        else
-            g.lady.offsetY = 0
-        end if
-        g.lady.frameName = "pauline-1"
+        g.lady.offsetY = g.board.map[g.lady.blockY][Int(g.lady.blockX / 2)].o - 1
+        g.lady.face = g.board.lady.face
         g.lady.frame = 0
-    end if
-    'Create Jumpman
-    if g.jumpman = invalid
-        g.jumpman = CreateJumpman(g.board)
-    else
-        g.jumpman.startBoard(g.board)
+        g.lady.help = {color: g.board.lady.help}
     end if
     m.startup = true
     'StopAudio()
@@ -199,7 +206,7 @@ Sub LoadAnimations()
     if m.anims.kong = invalid
         'm.anims.kong = ParseJson(ReadAsciiFile("pkg:/assets/anims/kong.json"))
         m.anims.jumpman = ParseJson(ReadAsciiFile("pkg:/assets/anims/mario.json"))
-        'm.anims.lady = ParseJson(ReadAsciiFile("pkg:/assets/anims/pauline.json"))
+        m.anims.lady = ParseJson(ReadAsciiFile("pkg:/assets/anims/pauline.json"))
     end if
 End Sub
 

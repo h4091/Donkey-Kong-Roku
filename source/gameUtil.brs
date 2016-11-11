@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: October 2016
+' **  Updated: November 2016
 ' **
 ' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -18,8 +18,9 @@ Function GetConstants() as object
     const.BLOCKS_X = 28
     const.BLOCKS_Y = 14
 
-    const.MOVE_X = 4
-    const.MOVE_Y = 2
+    const.FACE_AUTO  = 0
+    const.FACE_LEFT  = 1
+    const.FACE_RIGHT = 2
 
     const.START_LIVES = 3
     const.POINTS_LIFE = 7000
@@ -133,7 +134,7 @@ Function IsFloor(block) as boolean
 End Function
 
 Function IsFloorDown(block) as boolean
-    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_TOP_LADDER)
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_TOP_LADDER or block = m.const.MAP_BTTM_LADDER)
 End Function
 
 Function IsFloorUp(block) as boolean
