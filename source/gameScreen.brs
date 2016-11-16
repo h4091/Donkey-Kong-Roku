@@ -75,39 +75,18 @@ Function PlayGame() as boolean
                 'Check jumpman death
                 if not m.gameOver
                     if not m.jumpman.alive
-                        'TODO: Show death animation
-                        'PlaySound("dead")
+                        JumpmanDeath()
                         if m.jumpman.lives = 0
                             m.gameOver = true
                         else
                             ResetGame()
+                            LevelHeightScreen()
                         end if
                     else if m.board.name = "rivets" and m.rivets = 0
                         'TODO: Show finish level animation
                         NextBoard()
-                    else if CheckBoardSuccess() 'and false
-                        'TODO: show board complete animation
-                        x = m.lady.sprite.GetX()
-                        if m.lady.face = m.const.FACE_LEFT
-                            m.lady.frameName = "pauline-8"
-                            m.jumpman.frameName = "mario-52"
-                            x -= 32
-                        else
-                            m.lady.frameName = "pauline-3"
-                            m.jumpman.frameName = "mario-7"
-                            x += 34
-                        end if
-                        m.jumpman.sprite.SetRegion(m.regions.jumpman.Lookup(m.jumpman.frameName))
-                        m.jumpman.sprite.MoveOffset(0, -2)
-                        m.lady.sprite.SetRegion(m.regions.lady.Lookup(m.lady.frameName))
-                        m.lady.help.sprite.SetDrawableFlag(false)
-                        rgn = m.regions.lady.Lookup("heart-1")
-                        m.heart = m.compositor.NewSprite(x, 4, rgn, m.const.CHARS_Z)
-                        m.compositor.AnimationTick(ticks)
-                        m.compositor.DrawAll()
-                        DrawScore()
-                        m.mainScreen.SwapBuffers()
-                        Sleep(3000)
+                    else if CheckBoardSuccess()
+                        BoardComplete()
                         NextBoard()
                     end if
                 end if
@@ -139,6 +118,7 @@ Sub NextBoard()
 End Sub
 
 Sub LevelHeightScreen()
+    'PlaySound("board-start")
     m.mainScreen.Clear(0)
     DrawScore(false)
     kong = CreateObject("roBitmap", "pkg:/assets/images/height-kong.png")
@@ -180,7 +160,7 @@ Sub DrawObjects()
                 'Create sprite
                 obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, obj.z)
                 obj.sprite.SetData(obj.name)
-                if Left(obj.name, 8) = "conveyor" or obj.name = "platform"
+                if not obj.collide
                     obj.sprite.SetMemberFlags(0)
                 end if
             end if
@@ -203,6 +183,7 @@ Sub ObjectsUpdate()
                 elevator = m.elevators[obj.elevator]
                 platform = elevator.p[obj.platform]
                 curY = ((platform.y * m.const.BLOCK_HEIGHT) + platform.o)
+                SetBlockProperties(obj.blockX, platform.y, 0)
                 if elevator.up
                     topY = ((elevator.t * m.const.BLOCK_HEIGHT) + elevator.ot)
                     if curY > topY
@@ -212,6 +193,13 @@ Sub ObjectsUpdate()
                             platform.o += m.const.BLOCK_HEIGHT
                         end if
                         obj.sprite.MoveOffset(0, -2)
+                        mapY = platform.y
+                        mapO = platform.o - 16
+                        if mapO < 0
+                            mapY--
+                            mapO += m.const.BLOCK_HEIGHT
+                        end if
+                        SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     else
                         platform.y = elevator.b
                         platform.o = elevator.ob
@@ -227,11 +215,32 @@ Sub ObjectsUpdate()
                             platform.o -= m.const.BLOCK_HEIGHT
                         end if
                         obj.sprite.MoveOffset(0, 2)
+                        mapY = platform.y
+                        mapO = platform.o - 16
+                        if mapO < 0
+                            mapY--
+                            mapO += m.const.BLOCK_HEIGHT
+                        end if
+                        SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     else
                         platform.y = elevator.t
                         platform.o = elevator.ot
                         curY = ((platform.y * m.const.BLOCK_HEIGHT) + platform.o) - m.const.BLOCK_HEIGHT
                         obj.sprite.MoveTo(obj.sprite.GetX(), curY + m.yOff)
+                    end if
+                end if
+                if m.jumpman.platform <> invalid and Int(m.jumpman.blockX / 2) = Int(obj.blockX / 2) and m.jumpman.platform = obj.platform
+                    if elevator.up
+                        m.jumpman.offsetY -= 2
+                    else
+                        m.jumpman.offsetY += 2
+                    end if
+                    if m.jumpman.offsetY < 0
+                        m.jumpman.blockY--
+                        m.jumpman.offsetY += m.const.BLOCK_HEIGHT
+                    else if m.jumpman.offsetY >= m.const.BLOCK_HEIGHT
+                        m.jumpman.blockY++
+                        m.jumpman.offsetY -= m.const.BLOCK_HEIGHT
                     end if
                 end if
             end if
@@ -266,7 +275,7 @@ Sub JumpmanUpdate()
     m.jumpman.update()
     region = m.regions.jumpman.Lookup(m.jumpman.frameName)
     if region <> invalid
-        region.SetCollisionRectangle(11, 0, 10, 32)
+        region.SetCollisionRectangle(11, 16, 10, 16)
         region.SetCollisionType(1)
         x = (m.jumpman.blockX * m.const.BLOCK_WIDTH) + m.jumpman.offsetX
         y = ((m.jumpman.blockY * m.const.BLOCK_HEIGHT) + m.jumpman.offsetY) - region.GetHeight()
@@ -276,6 +285,27 @@ Sub JumpmanUpdate()
         else
             m.jumpman.sprite.SetRegion(region)
             m.jumpman.sprite.MoveTo(x, y + m.yOff)
+            'Check jump over objects
+            if m.jumpman.state = m.jumpman.STATE_JUMP and m.jumpman.frame = 10  'top of the jump
+                ptr = invalid
+                for i = 0 to m.objects.Count() - 1
+                    obj = m.objects[i]
+                    if obj.sprite <> invalid and obj.sprite.GetData() = "rivet" and m.jumpman.jump <> m.const.ACT_JUMP_UP
+                        if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
+                            ptr = m.regions.objects.Lookup("points-100")
+                            AddScore(100)
+                            obj.sprite.MoveOffset(-8, 0)
+                            if m.rivets > 0 then m.rivets--
+                            exit for
+                        end if
+                    end if
+                next
+                if ptr <> invalid
+                    obj.sprite.SetRegion(ptr)
+                    obj.sprite.SetMemberFlags(0)
+                    obj.sprite.SetData("score")
+                end if
+            end if
             'Check collision with objects
             objSprite = m.jumpman.sprite.CheckCollision()
             if objSprite <> invalid
@@ -303,14 +333,38 @@ Sub JumpmanUpdate()
                 else if objName = "hammer"
                     print "got hammer!"
                     objSprite.Remove()
-                else if objName = "oil"
-                    'ignore
                 else if not m.immortal
                     m.jumpman.alive = false
                 end if
             end if
         end if
     end if
+End Sub
+
+Sub JumpmanDeath()
+    Sleep(1000)
+    'PlaySound("dead")
+    m.jumpman.state = m.jumpman.STATE_MOVE
+    if Right(m.jumpman.charAction,4) = "Left"
+        m.jumpman.charAction = "dieLeft"
+    else
+        m.jumpman.charAction = "dieRight"
+    end if
+    m.jumpman.frame = 0
+    while true
+        ticks = m.clock.TotalMilliseconds()
+        if ticks > m.speed
+            m.jumpman.frameUpdate()
+            m.jumpman.sprite.SetRegion(m.regions.jumpman.Lookup(m.jumpman.frameName))
+            m.compositor.AnimationTick(ticks)
+            m.compositor.DrawAll()
+            DrawScore()
+            m.mainScreen.SwapBuffers()
+            m.clock.Mark()
+        end if
+        if m.jumpman.frame = 0 then exit while
+    end while
+    Sleep(2000)
 End Sub
 
 Sub KongUpdate()
@@ -398,6 +452,32 @@ Sub BoardStartup()
         m.jumpman.lives--
     end if
     m.startup = false
+End Sub
+
+Sub BoardComplete()
+    'TODO: show board complete animation
+    x = m.lady.sprite.GetX()
+    if m.lady.face = m.const.FACE_LEFT
+        m.lady.frameName = "pauline-8"
+        m.jumpman.frameName = "mario-52"
+        x -= 32
+    else
+        m.lady.frameName = "pauline-3"
+        m.jumpman.frameName = "mario-7"
+        x += 34
+    end if
+    ticks = m.clock.TotalMilliseconds()
+    m.jumpman.sprite.SetRegion(m.regions.jumpman.Lookup(m.jumpman.frameName))
+    m.jumpman.sprite.MoveOffset(0, -2)
+    m.lady.sprite.SetRegion(m.regions.lady.Lookup(m.lady.frameName))
+    m.lady.help.sprite.SetDrawableFlag(false)
+    rgn = m.regions.lady.Lookup("heart-1")
+    m.heart = m.compositor.NewSprite(x, 4, rgn, m.const.CHARS_Z)
+    m.compositor.AnimationTick(ticks)
+    m.compositor.DrawAll()
+    DrawScore()
+    m.mainScreen.SwapBuffers()
+    Sleep(3000)
 End Sub
 
 Function CheckBoardSuccess() as boolean

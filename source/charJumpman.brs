@@ -55,6 +55,7 @@ Sub start_board_jumpman(board as object)
     m.frame = 0
     m.state = m.STATE_STOP
     m.success = false
+    m.platform = invalid
     m.cursors.reset()
     print m.board.name
 End Sub
@@ -283,7 +284,7 @@ Sub move_jumpman(action)
     'Update jump
     if m.state = m.STATE_JUMP
         curFloor = GetFloorOffset(m.blockX, m.blockY)
-        if m.frame > 0 and IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
+        if m.frame > 0 and (IsFloorDown(curBlock) or (IsElevator(curBlock) and curFloor >= 0)) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
             if m.charAction = "jumpLeft"
                 m.charAction = "runLeft"
             else
@@ -291,6 +292,11 @@ Sub move_jumpman(action)
             end if
             m.frame = 2
             m.state = m.STATE_MOVE
+            if IsElevator(curBlock)
+                m.platform = GetPlatform(m.blockX, m.blockY)
+            else
+                m.platform = invalid
+            end if
             m.offsetY = curFloor
             fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
             if fallHeight  >= m.const.BLOCK_HEIGHT
@@ -325,17 +331,23 @@ Sub move_jumpman(action)
     else if m.state = m.STATE_FALL 'Update fall
         curFloor = GetFloorOffset(m.blockX, m.blockY)
         if m.frame > 0 and IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
-            m.frame = 2
+            m.frame = 0
             m.state = m.STATE_MOVE
             m.offsetY = curFloor
             fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
             if fallHeight  >= m.const.BLOCK_HEIGHT
+                m.alive = false
+                if Right(m.charAction,4) = "Left"
+                    m.charAction = "landLeft"
+                else
+                    m.charAction = "landRight"
+                end if
                 print "landed dead "; fallHeight
             else
                 print "landed safe "; fallHeight
             end if
         else
-            m.offsetX = 0
+            m.offsetX = -8
             m.offsetY += 2
             if m.offsetY >= m.const.BLOCK_HEIGHT
                 m.blockY++
@@ -346,6 +358,8 @@ Sub move_jumpman(action)
     end if
     if action <> m.const.ACT_NONE
         print "position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY; " - Floor=";GetFloorOffset(m.blockX, m.blockY)
+    else if m.state = m.STATE_JUMP
+        print "jump:"; m.frame
     end if
 End Sub
 

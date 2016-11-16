@@ -12,8 +12,8 @@
 Function GetConstants() as object
     const = {}
 
-    const.BLOCK_WIDTH    = 16
-    const.BLOCK_HEIGHT   = 32
+    const.BLOCK_WIDTH  = 16
+    const.BLOCK_HEIGHT = 32
 
     const.BLOCKS_X = 28
     const.BLOCKS_Y = 14
@@ -46,8 +46,8 @@ Function GetConstants() as object
     const.ACT_NONE       = 0
     const.ACT_CLIMB_UP   = 1
     const.ACT_CLIMB_DOWN = 2
-    const.ACT_RUN_LEFT  = 3
-    const.ACT_RUN_RIGHT = 4
+    const.ACT_RUN_LEFT   = 3
+    const.ACT_RUN_RIGHT  = 4
     const.ACT_JUMP_UP    = 5
     const.ACT_JUMP_LEFT  = 6
     const.ACT_JUMP_RIGHT = 7
@@ -55,13 +55,9 @@ Function GetConstants() as object
     const.CONTROL_VERTICAL   = 0
     const.CONTROL_HORIZONTAL = 1
 
-    const.BOARD_Z = 20
-    const.CHARS_Z = 30
+    const.BOARD_Z   = 20
+    const.CHARS_Z   = 30
     const.OBJECTS_Z = 40
-
-    const.MESSAGEBOX_YES = 1
-    const.MESSAGEBOX_NO = 2
-    const.MESSAGEBOX_CANCEL = 3
 
     return const
 End Function
@@ -102,6 +98,13 @@ Function GetFloorOffset(blockX as integer, blockY as integer) as integer
     return mapTile.o - 1
 End Function
 
+Sub SetBlockProperties(blockX as integer, blockY as integer, offset as integer, platform = invalid)
+    tx = Int(blockX / 2)
+    ty = blockY
+    m.board.map[ty][tx].o = offset
+    m.board.map[ty][tx].p = platform
+End Sub
+
 Function GetBlockType(blockX as integer, blockY as integer) as integer
     tx = Int(blockX / 2)
     ty = blockY
@@ -111,6 +114,13 @@ Function GetBlockType(blockX as integer, blockY as integer) as integer
     else
         return mapTile.l
     end if
+End Function
+
+Function GetPlatform(blockX as integer, blockY as integer) as integer
+    tx = Int(blockX / 2)
+    ty = blockY
+    mapTile = m.board.map[ty][tx]
+    return mapTile.p
 End Function
 
 Function IsTileEmpty(block) as boolean
@@ -139,6 +149,10 @@ End Function
 
 Function IsFloorUp(block) as boolean
     return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_BTTM_LADDER)
+End Function
+
+Function IsElevator(block) as boolean
+    return block <> invalid and (block = m.const.MAP_ELEVATOR)
 End Function
 
 '------- Numeric and String Functions -------

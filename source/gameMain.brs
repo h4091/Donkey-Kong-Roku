@@ -130,6 +130,7 @@ Sub ResetGame()
                 g.objects[i].cw = obj.cw
                 g.objects[i].ch = obj.ch
             end if
+            g.objects[i].collide = (obj.collide = invalid or obj.collide)
             g.objects[i].z = g.const.OBJECTS_Z
             if obj.name = "rivet"
                 g.rivets++

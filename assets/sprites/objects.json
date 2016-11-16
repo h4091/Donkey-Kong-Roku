@@ -512,7 +512,7 @@
 	"spriteSourceSize": {"x":0,"y":0,"w":32,"h":22},
 	"sourceSize": {"w":32,"h":22}
 },
-"stair":
+"ladder":
 {
 	"frame": {"x":259,"y":245,"w":20,"h":32},
 	"rotated": false,
