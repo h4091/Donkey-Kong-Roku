@@ -5,7 +5,7 @@
 ' **  Created: October 2016
 ' **  Updated: November 2016
 ' **
-' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
+' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
 ' ********************************************************************************************************
 Library "v30/bslDefender.brs"
@@ -14,23 +14,23 @@ Sub Main()
     'Constants
     m.code = bslUniversalControlEventCodes()
     m.const = GetConstants()
-    m.colors = {black: &hFF, white: &hFFFFFFFF, darkgray: &h0F0F0FFF, red: &hFF0000FF, blue: &h0000FFFF}
+    m.colors = {black: &hFF, white: &hFFFFFFFF, darkgray: &h0F0F0FFF, red: &hFF0000FF, green: &h00FF00FF, blue: &h0000FFFF, cyan: &h00FFFFFF, yellow: &hFFD800FF}
     'Util objects
     app = CreateObject("roAppManager")
     app.SetTheme(GetTheme())
     m.port = CreateObject("roMessagePort")
     m.clock = CreateObject("roTimespan")
+    m.timer = CreateObject("roTimespan")
     m.audioPlayer = CreateObject("roAudioPlayer")
     m.audioPort = CreateObject("roMessagePort")
     m.audioPlayer.SetMessagePort(m.audioPort)
-    'm.sounds = LoadSounds(true)
+    m.sounds = LoadSounds(true)
     m.files = CreateObject("roFileSystem")
     m.fonts = CreateObject("roFontRegistry")
     m.fonts.Register("pkg:/assets/fonts/PressStart2P.ttf")
     m.gameFont = m.fonts.getFont("Press Start 2P", 16, false, false)
     m.manifest = GetManifestArray()
     m.settings = LoadSettings()
-    'm.highScores = LoadHighScores()
     m.immortal = false 'flag to enable/disable jumpman immortality
     m.isOpenGL = isOpenGL()
     selection = m.const.MENU_START
@@ -45,13 +45,14 @@ Sub Main()
         if selection = m.const.MENU_START
             print "Starting game..."
             m.gameScore = 0
-            m.highScore = 0 'To be implemented
+            m.highScore = m.settings.highScores[0].score
             m.currentLevel = 1
             m.currentBoard = 1
+            m.speed = 30
             ResetGame()
             PlayIntro(3000)
             LevelHeightScreen()
-            if PlayGame() then ShowHighScores(5000)
+            PlayGame()
         else if selection = m.const.MENU_CREDITS
             ShowCredits()
         else if selection = m.const.MENU_HISCORES
@@ -62,7 +63,7 @@ End Sub
 
 Sub PlayIntro(waitTime as integer)
     screen = m.mainScreen
-    Sleep(250) ' Give time to Roku clear list screen from memory
+    Sleep(500) ' Give time to Roku clear list screen from memory
     if m.isOpenGL
         screen.Clear(m.colors.black)
         screen.SwapBuffers()
@@ -81,7 +82,7 @@ Sub PlayIntro(waitTime as integer)
             screen.DrawObject(centerX, centerY, bmp2)
         end if
         screen.SwapBuffers()
-        sleep(50)
+        sleep(30)
     next
 	while true
     	key = wait(waitTime, m.port)
@@ -104,6 +105,10 @@ Sub ResetGame()
     if m.currentLevel <= g.maps.levels.Count()
         g.level = g.maps.levels.Lookup("level-" + itostr(m.currentLevel))
     end if
+    if m.currentLevel <= g.maps.bonus.Count()
+        g.bonus = g.maps.bonus.Lookup("level-" + itostr(m.currentLevel))
+    end if
+    g.currentBonus = g.bonus.value
     g.board = g.maps.boards.Lookup("board-" + itostr(g.level[m.currentBoard-1]))
     g.board.redraw = true
     g.rivets = 0
@@ -177,8 +182,8 @@ Sub ResetGame()
         g.lady.help = {color: g.board.lady.help}
     end if
     m.startup = true
-    'StopAudio()
-    'StopSound()
+    StopAudio()
+    StopSound()
 End Sub
 
 Sub AddScore(points as integer)

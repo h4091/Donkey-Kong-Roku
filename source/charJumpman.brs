@@ -5,7 +5,7 @@
 ' **  Created: October 2016
 ' **  Updated: November 2016
 ' **
-' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
+' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
 ' ********************************************************************************************************
 
@@ -300,6 +300,7 @@ Sub move_jumpman(action)
             m.offsetY = curFloor
             fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
             if fallHeight  >= m.const.BLOCK_HEIGHT
+                m.alive = false
                 print "landed dead "; fallHeight
             else
                 print "landed safe "; fallHeight

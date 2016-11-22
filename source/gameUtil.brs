@@ -5,7 +5,7 @@
 ' **  Created: October 2016
 ' **  Updated: November 2016
 ' **
-' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
+' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
 ' ********************************************************************************************************
 
@@ -24,9 +24,6 @@ Function GetConstants() as object
 
     const.START_LIVES = 3
     const.POINTS_LIFE = 7000
-
-    const.SCORE_BONUS = 5000
-    const.SCORE_JUMP  = 100
 
     const.MENU_START    = 0
     const.MENU_CONTROL  = 1
@@ -209,6 +206,11 @@ End Function
 Function IsOdd(number) as boolean
     return (number mod 2 <> 0)
 End Function
+
+Function CenterText(text as string, width as integer)
+    return Cint((width - m.gameFont.GetOneLineWidth(text, width)) / 2)
+End Function
+
 '------- Device Check Functions -------
 
 Function IsHD()
@@ -321,7 +323,13 @@ Function LoadSettings() as dynamic
     end if
     if settings = invalid then settings = {}
     if settings.controlMode = invalid then settings.controlMode = m.const.CONTROL_VERTICAL
-    if settings.startLevel = invalid then settings.startLevel = 1
+    if settings.highScores = invalid
+        settings.highScores = [ {score: 7650, name: ""},
+                                {score: 6100, name: ""},
+                                {score: 5950, name: ""},
+                                {score: 5050, name: ""},
+                                {score: 4300, name: ""} ]
+    end if
     return settings
 End Function
 

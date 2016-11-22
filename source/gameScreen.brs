@@ -5,11 +5,11 @@
 ' **  Created: October 2016
 ' **  Updated: November 2016
 ' **
-' **  Remake in Brightscropt developed by Marcelo Lv Cabral - http://lvcabral.com
+' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
 ' ********************************************************************************************************
 
-Function PlayGame() as boolean
+Sub PlayGame()
     'Clear screen (needed for non-OpenGL devices)
     m.mainScreen.Clear(0)
     m.mainScreen.SwapBuffers()
@@ -27,13 +27,15 @@ Function PlayGame() as boolean
             'Handle Remote Control events
             id = event.GetInt()
             if id = m.code.BUTTON_BACK_PRESSED
-                'StopAudio()
+                StopAudio()
                 DestroyChars()
                 DestroyStage()
                 m.jumpman = invalid
                 exit while
             else if id = m.code.BUTTON_INSTANT_REPLAY_PRESSED
-                m.jumpman.alive = false
+                StopAudio()
+                ResetGame()
+                m.jumpman.usedCheat = true
             else if id = m.code.BUTTON_PLAY_PRESSED
                 PauseGame()
             else if id = m.code.BUTTON_INFO_PRESSED
@@ -63,7 +65,7 @@ Function PlayGame() as boolean
                 ObjectsUpdate()
                 if m.startup then BoardStartup()
                 JumpmanUpdate()
-                'SoundUpdate()
+                SoundUpdate()
                 'Paint Screen
                 m.mainScreen.Clear(0)
                 m.compositor.AnimationTick(ticks)
@@ -72,9 +74,11 @@ Function PlayGame() as boolean
                 if m.debug then DrawGrid()
                 m.mainScreen.SwapBuffers()
                 m.clock.Mark()
+                UpdateBonusTimer()
                 'Check jumpman death
                 if not m.gameOver
                     if not m.jumpman.alive
+                        StopAudio()
                         JumpmanDeath()
                         if m.jumpman.lives = 0
                             m.gameOver = true
@@ -84,27 +88,27 @@ Function PlayGame() as boolean
                         end if
                     else if m.board.name = "rivets" and m.rivets = 0
                         'TODO: Show finish level animation
+                        AddScore(m.currentBonus)
                         NextBoard()
                     else if CheckBoardSuccess()
                         BoardComplete()
+                        AddScore(m.currentBonus)
                         NextBoard()
                     end if
                 end if
                 if m.gameOver
-                    changed = false
-                    'StopAudio()
+                    StopAudio()
                     GameOver()
-                    changed = CheckHighScores()
+                    CheckHighScores()
                     DestroyChars()
                     DestroyStage()
                     m.jumpman = invalid
-                    return changed
+                    exit while
                 end if
             end if
         end if
     end while
-    return false
-End Function
+End Sub
 
 Sub NextBoard()
     if m.currentBoard = m.level.Count()
@@ -118,7 +122,7 @@ Sub NextBoard()
 End Sub
 
 Sub LevelHeightScreen()
-    'PlaySound("board-start")
+    PlaySound("start-board")
     m.mainScreen.Clear(0)
     DrawScore(false)
     kong = CreateObject("roBitmap", "pkg:/assets/images/height-kong.png")
@@ -256,13 +260,19 @@ Sub DrawScore(showBonus = true as boolean)
     next
     'Paint score
     leftOff = ((m.mainWidth - 640) / 2)
+    m.gameLeft.Clear(0)
     m.gameLeft.DrawText("1UP", leftOff + 24, 12, m.colors.red, m.gameFont)
     m.gameLeft.DrawText(zeroPad(m.gameScore, 6), leftOff, 28, m.colors.white, m.gameFont)
+    m.gameRight.Clear(0)
     m.gameRight.DrawText("HIGH", 16, 12, m.colors.red, m.gameFont)
     m.gameRight.DrawText(zeroPad(m.highScore, 6), 0, 28, m.colors.white, m.gameFont)
     m.gameScreen.DrawText("L=" + zeroPad(m.currentLevel), 340 , 12, m.colors.blue, m.gameFont)
     if showBonus
-        m.gameScreen.DrawText(zeroPad(m.const.SCORE_BONUS), 354, m.yOff + 32, Val(m.board.fontColor, 0), m.gameFont)
+        if m.currentBonus > 999
+            m.gameScreen.DrawText(itostr(m.currentBonus), 354, m.yOff + 32, Val(m.board.fontColors[0], 0), m.gameFont)
+        else
+            m.gameScreen.DrawText(zeroPad(m.currentBonus, 3), 370, m.yOff + 32, Val(m.board.fontColors[1], 0), m.gameFont)
+        end if
     end if
 End Sub
 
@@ -279,6 +289,11 @@ Sub JumpmanUpdate()
         region.SetCollisionType(1)
         x = (m.jumpman.blockX * m.const.BLOCK_WIDTH) + m.jumpman.offsetX
         y = ((m.jumpman.blockY * m.const.BLOCK_HEIGHT) + m.jumpman.offsetY) - region.GetHeight()
+        if m.jumpman.state = m.jumpman.STATE_MOVE
+            PlaySound("walk", false, 50)
+        else if m.jumpman.state = m.jumpman.STATE_JUMP and m.jumpman.frame = 1
+            PlaySound("jump")
+        end if
         if m.jumpman.sprite = invalid
             m.jumpman.sprite = m.compositor.NewSprite(x, y + m.yOff, region, m.const.CHARS_Z)
             m.jumpman.sprite.SetData("jumpman")
@@ -294,6 +309,7 @@ Sub JumpmanUpdate()
                         if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
                             ptr = m.regions.objects.Lookup("points-100")
                             AddScore(100)
+                            PlaySound("get-item")
                             obj.sprite.MoveOffset(-8, 0)
                             if m.rivets > 0 then m.rivets--
                             exit for
@@ -330,6 +346,7 @@ Sub JumpmanUpdate()
                     objSprite.SetRegion(ptr)
                     objSprite.SetMemberFlags(0)
                     objSprite.SetData("score")
+                    PlaySound("get-item")
                 else if objName = "hammer"
                     print "got hammer!"
                     objSprite.Remove()
@@ -343,7 +360,7 @@ End Sub
 
 Sub JumpmanDeath()
     Sleep(1000)
-    'PlaySound("dead")
+    PlaySound("death")
     m.jumpman.state = m.jumpman.STATE_MOVE
     if Right(m.jumpman.charAction,4) = "Left"
         m.jumpman.charAction = "dieLeft"
@@ -452,10 +469,14 @@ Sub BoardStartup()
         m.jumpman.lives--
     end if
     m.startup = false
+    StopSound()
+    if m.board.audio <> invalid then PlaySong(m.board.audio, true)
+    m.timer.mark()
 End Sub
 
 Sub BoardComplete()
     'TODO: show board complete animation
+    StopAudio()
     x = m.lady.sprite.GetX()
     if m.lady.face = m.const.FACE_LEFT
         m.lady.frameName = "pauline-8"
@@ -477,12 +498,21 @@ Sub BoardComplete()
     m.compositor.DrawAll()
     DrawScore()
     m.mainScreen.SwapBuffers()
-    Sleep(3000)
+    Sleep(500)
+    PlaySound("finish-board")
+    Sleep(2500)
 End Sub
 
 Function CheckBoardSuccess() as boolean
     return (m.board.complete <> invalid and m.jumpman.blockY = m.board.complete.y and m.jumpman.offsetY = m.board.complete.o)
 End Function
+
+Sub UpdateBonusTimer()
+    if m.bonus.time < m.timer.TotalMilliseconds()
+        if m.currentBonus >= 100 then m.currentBonus -= 100
+        m.timer.mark()
+    end if
+End Sub
 
 Sub DestroyChars()
     if m.kong <> invalid
@@ -540,7 +570,7 @@ Sub PauseGame()
     x = Cint((m.gameWidth - textWidth) / 2)
     y = 308
     m.gameScreen.DrawRect(x - 32, y - 32, textWidth + 64, textHeight + 64, m.colors.black)
-    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColor, 0), m.gameFont)
+    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColors[0], 0), m.gameFont)
     m.mainScreen.SwapBuffers()
     while true
         key = wait(0, m.port)
@@ -555,7 +585,7 @@ Sub GameOver()
     x = Cint((m.gameWidth - textWidth) / 2)
     y = 308
     m.gameScreen.DrawRect(x - 32, y - 32, textWidth + 64, textHeight + 64, m.colors.black)
-    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColor, 0), m.gameFont)
+    m.gameScreen.DrawText(text, x, y, Val(m.board.fontColors[0], 0), m.gameFont)
     m.mainScreen.SwapBuffers()
     while true
         key = wait(3000, m.port)
