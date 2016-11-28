@@ -39,6 +39,7 @@ Function GetConstants() as object
     const.MAP_FULL_LADDER = 6
     const.MAP_ELEVATOR    = 7
     const.MAP_CONV_BELT   = 8
+    const.MAP_INV_WALL    = 9
 
     const.ACT_NONE       = 0
     const.ACT_CLIMB_UP   = 1
@@ -89,6 +90,9 @@ Function GetManifestArray() as Object
 End Function
 
 Function GetFloorOffset(blockX as integer, blockY as integer) as integer
+    if blockX < 0 or blockX > 27 or blockY < 0 or blockY > 13
+        return 0
+    end if
     tx = Int(blockX / 2)
     ty = blockY
     mapTile = m.board.map[ty][tx]
@@ -103,6 +107,9 @@ Sub SetBlockProperties(blockX as integer, blockY as integer, offset as integer, 
 End Sub
 
 Function GetBlockType(blockX as integer, blockY as integer) as integer
+    if blockX < 0 or blockX > 27 or blockY < 0 or blockY > 13
+        return m.const.MAP_INV_WALL
+    end if
     tx = Int(blockX / 2)
     ty = blockY
     mapTile = m.board.map[ty][tx]
@@ -118,6 +125,15 @@ Function GetPlatform(blockX as integer, blockY as integer) as integer
     ty = blockY
     mapTile = m.board.map[ty][tx]
     return mapTile.p
+End Function
+
+Function GetConveyorDirection(blockX as integer, blockY as integer) as string
+    for each belt in m.belts
+        if blockY = belt.y and blockX >= belt.xl and blockX <= belt.xr
+            return belt.direction
+        end if
+    next
+    return ""
 End Function
 
 Function IsTileEmpty(block) as boolean

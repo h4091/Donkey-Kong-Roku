@@ -9,7 +9,7 @@
 ' ********************************************************************************************************
 ' ********************************************************************************************************
 
-Function CreateJumpman(board as object) as object
+Function CreateJumpman() as object
     this = {}
     'Constants
     this.const = m.const
@@ -19,11 +19,10 @@ Function CreateJumpman(board as object) as object
     this.STATE_FALL = 3
 	'Controller
 	this.cursors = GetControl(m.settings.controlMode)
-    this.sounds = m.sounds
     'Properties
-    this.alive = false
-    this.anims = m.anims
     this.charType = "jumpman"
+    this.anims = m.anims
+    this.alive = false
     this.usedCheat = false
     this.lives = m.const.START_LIVES
     'Methods
@@ -40,7 +39,7 @@ Function CreateJumpman(board as object) as object
     this.keyR = key_r
     this.keyJ = key_j
     'Initialize board variables
-    this.startBoard(board)
+    this.startBoard(m.board)
     return this
 End Function
 
@@ -54,18 +53,12 @@ Sub start_board_jumpman(board as object)
     m.frameName = "mario-52"
     m.frame = 0
     m.state = m.STATE_STOP
-    m.success = false
     m.platform = invalid
     m.cursors.reset()
     print m.board.name
 End Sub
 
 Sub update_jumpman()
-    'Check level complete
-    if m.blockY = 0 and m.offsetY = 0
-        m.success = true
-        return
-    end if
     'Update jumpman position
     if m.state > m.STATE_MOVE
         m.move(m.const.ACT_NONE)
@@ -167,7 +160,7 @@ Sub move_jumpman(action)
                  m.charAction = "runLeft"
                  m.frame = 0
             end if
-            if m.blockX > 0 or m.offsetX > 0
+            if GetBlockType(m.blockX - 1, m.blockY) <> m.const.MAP_INV_WALL or m.offsetX > 0
                 m.state = m.STATE_MOVE
                 m.offsetX -= m.frameOffsetX()
                 if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
@@ -211,7 +204,7 @@ Sub move_jumpman(action)
                     m.offsetX -= m.const.BLOCK_WIDTH
                 end if
                 if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
-                if GetFloorOffset(m.blockX, m.blockY) = -1
+                if GetFloorOffset(m.blockX, m.blockY) = -1 or IsTileEmpty(GetBlockType(m.blockX, m.blockY))
                     if IsTileEmpty(downBlock)
                         m.startFall()
                     else if downBlock <> invalid
@@ -234,23 +227,21 @@ Sub move_jumpman(action)
         end if
     else if action = m.const.ACT_JUMP_UP
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if m.blockX > 0 or m.offsetX > 0
-                if Left(m.charAction, 4) <> "jump"
-                    if m.charAction = "runLeft"
-                        m.charAction = "jumpLeft"
-                    else
-                        m.charAction = "jumpRight"
-                    end if
-                    m.frame = 0
+            if Left(m.charAction, 4) <> "jump"
+                if m.charAction = "runLeft"
+                    m.charAction = "jumpLeft"
+                else
+                    m.charAction = "jumpRight"
                 end if
-                m.jump = action
-                m.state = m.STATE_JUMP
-                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
+                m.frame = 0
             end if
+            m.jump = action
+            m.state = m.STATE_JUMP
+            m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
         end if
     else if action = m.const.ACT_JUMP_LEFT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if m.blockX > 0 or m.offsetX > 0
+            if m.blockX > 0 or m.offsetX >= 0
                 if Left(m.charAction, 4) <> "jump"
                     if m.charAction = "runLeft"
                         m.charAction = "jumpLeft"
@@ -266,19 +257,17 @@ Sub move_jumpman(action)
         end if
     else if action = m.const.ACT_JUMP_RIGHT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
-                if Left(m.charAction, 4) <> "jump"
-                    if m.charAction = "runLeft"
-                        m.charAction = "jumpLeft"
-                    else
-                        m.charAction = "jumpRight"
-                    end if
-                    m.frame = 0
+            if Left(m.charAction, 4) <> "jump"
+                if m.charAction = "runLeft"
+                    m.charAction = "jumpLeft"
+                else
+                    m.charAction = "jumpRight"
                 end if
-                m.jump = action
-                m.state = m.STATE_JUMP
-                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
+                m.frame = 0
             end if
+            m.jump = action
+            m.state = m.STATE_JUMP
+            m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
         end if
     end if
     'Update jump
@@ -312,12 +301,20 @@ Sub move_jumpman(action)
                 else
                     m.offsetX += m.frameOffsetX()
                 end if
-                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                if m.offsetX <= -1
                     m.blockX--
                     m.offsetX += m.const.BLOCK_WIDTH
-                else if m.offsetX >= m.const.BLOCK_WIDTH / 4
+                else if m.offsetX >= 1
                     m.blockX++
                     m.offsetX -= m.const.BLOCK_WIDTH
+                end if
+                actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
+                if m.jump = m.const.ACT_JUMP_LEFT and GetBlockType(m.blockX, m.blockY) = m.const.MAP_INV_WALL
+                    m.jump = m.const.ACT_JUMP_RIGHT
+                    m.frame = (actionArray.Count()-1) - m.frame
+                else if m.jump = m.const.ACT_JUMP_RIGHT and GetBlockType(m.blockX + 1, m.blockY) = m.const.MAP_INV_WALL
+                    m.jump = m.const.ACT_JUMP_LEFT
+                    m.frame = (actionArray.Count()-1) - m.frame
                 end if
             end if
             m.offsetY -= m.frameOffsetY()
@@ -331,7 +328,7 @@ Sub move_jumpman(action)
         end if
     else if m.state = m.STATE_FALL 'Update fall
         curFloor = GetFloorOffset(m.blockX, m.blockY)
-        if m.frame > 0 and IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
+        if IsFloorDown(curBlock) and m.offsetY >= curFloor and m.offsetY-curFloor <= 4
             m.frame = 0
             m.state = m.STATE_MOVE
             m.offsetY = curFloor
@@ -354,6 +351,23 @@ Sub move_jumpman(action)
                 m.blockY++
                 m.offsetY -= m.const.BLOCK_HEIGHT
                 if m.offsetY < 2 then m.offsetY = 0
+            end if
+        end if
+    else if GetBlockType(m.blockX, m.blockY) = m.const.MAP_CONV_BELT
+        if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
+            direction = GetConveyorDirection(m.blockX, m.blockY)
+            if direction = "R"
+                m.offsetX += 2
+                if m.offsetX >= m.const.BLOCK_WIDTH / 4
+                    m.blockX++
+                    m.offsetX -= m.const.BLOCK_WIDTH
+                end if
+            else if direction = "L"
+                m.offsetX -= 2
+                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                    m.blockX--
+                    m.offsetX += m.const.BLOCK_WIDTH
+                end if
             end if
         end if
     end if

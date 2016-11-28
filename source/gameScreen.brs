@@ -36,6 +36,7 @@ Sub PlayGame()
                 StopAudio()
                 ResetGame()
                 m.jumpman.usedCheat = true
+                m.clock.Mark()
             else if id = m.code.BUTTON_PLAY_PRESSED
                 PauseGame()
             else if id = m.code.BUTTON_INFO_PRESSED
@@ -85,6 +86,7 @@ Sub PlayGame()
                         else
                             ResetGame()
                             LevelHeightScreen()
+                            m.clock.Mark()
                         end if
                     else if m.board.name = "rivets" and m.rivets = 0
                         'TODO: Show finish level animation
@@ -119,6 +121,7 @@ Sub NextBoard()
     end if
     ResetGame()
     LevelHeightScreen()
+    m.clock.Mark()
 End Sub
 
 Sub LevelHeightScreen()
@@ -162,8 +165,25 @@ Sub DrawObjects()
                     region.SetCollisionType(1)
                 end if
                 'Create sprite
-                obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, obj.z)
-                obj.sprite.SetData(obj.name)
+                if obj.animation <> invalid or obj.belt <> invalid
+                    if obj.animation <> invalid
+                        animation = obj.animation
+                    else
+                        animation = obj.name + obj.side + m.belts[obj.belt].direction
+                    end if
+                    actions = m.anims.objects.sequence.Lookup(animation)
+                    regions = []
+                    for each action in actions
+                        frame = m.regions.objects.Lookup(obj.name + "-" + itostr(action.id))
+                        if action.t <> invalid then frame.SetTime(action.t)
+                        regions.Push(frame)
+                    next
+                    obj.sprite = m.compositor.NewAnimatedSprite(x, y + m.yOff, regions, obj.z)
+                    obj.sprite.SetData(animation)
+                else
+                    obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, obj.z)
+                    obj.sprite.SetData(obj.name)
+                end if
                 if not obj.collide
                     obj.sprite.SetMemberFlags(0)
                 end if
@@ -183,6 +203,25 @@ Sub ObjectsUpdate()
                     obj.countdown--
                 end if
                 if obj.countdown = 0 then obj.sprite.Remove()
+            else if obj.belt <> invalid
+                if Right(obj.sprite.GetData(), 1) <> m.belts[obj.belt].direction
+                    animation = obj.name + obj.side + m.belts[obj.belt].direction
+                    actions = m.anims.objects.sequence.Lookup(animation)
+                    regions = []
+                    for each action in actions
+                        frame = m.regions.objects.Lookup(obj.name + "-" + itostr(action.id))
+                        if action.t <> invalid then frame.SetTime(action.t)
+                        regions.Push(frame)
+                    next
+                    x = obj.sprite.GetX()
+                    y = obj.sprite.GetY()
+                    obj.sprite.Remove()
+                    obj.sprite = m.compositor.NewAnimatedSprite(x, y, regions, obj.z)
+                    obj.sprite.SetData(animation)
+                    if not obj.collide
+                        obj.sprite.SetMemberFlags(0)
+                    end if
+                end if
             else if obj.sprite.GetData() = "platform"
                 elevator = m.elevators[obj.elevator]
                 platform = elevator.p[obj.platform]
@@ -373,7 +412,6 @@ Sub JumpmanDeath()
         if ticks > m.speed
             m.jumpman.frameUpdate()
             m.jumpman.sprite.SetRegion(m.regions.jumpman.Lookup(m.jumpman.frameName))
-            m.compositor.AnimationTick(ticks)
             m.compositor.DrawAll()
             DrawScore()
             m.mainScreen.SwapBuffers()
@@ -385,18 +423,25 @@ Sub JumpmanDeath()
 End Sub
 
 Sub KongUpdate()
-    'm.kong.update()
-    region = m.regions.kong.Lookup(m.kong.frameName)
-    if region <> invalid
+    m.kong.update()
+    if m.kong.sprite = invalid or m.kong.sprite.GetData() <> m.kong.charAction
+        actions = m.anims.kong.sequence.Lookup(m.kong.charAction)
+        regions = []
+        for each action in actions
+            frame = m.regions.kong.Lookup("kong-" + itostr(action.id))
+            if action.t <> invalid then frame.SetTime(action.t)
+            regions.Push(frame)
+        next
+        x = (m.kong.blockX * m.const.BLOCK_WIDTH) + m.kong.offsetX
+        y = ((m.kong.blockY * m.const.BLOCK_HEIGHT) + m.kong.offsetY) - frame.GetHeight()
+        if m.kong.sprite <> invalid then m.kong.sprite.Remove()
+        m.kong.sprite = m.compositor.NewAnimatedSprite(x, y + m.yOff, regions,  m.const.CHARS_Z)
+        m.kong.sprite.SetData(m.kong.charAction)
+    else
+        region = m.regions.kong.Lookup(m.kong.frameName)
         x = (m.kong.blockX * m.const.BLOCK_WIDTH) + m.kong.offsetX
         y = ((m.kong.blockY * m.const.BLOCK_HEIGHT) + m.kong.offsetY) - region.GetHeight()
-        if m.kong.sprite = invalid
-            m.kong.sprite = m.compositor.NewSprite(x, y + m.yOff, region, m.const.CHARS_Z)
-            m.kong.sprite.SetData("kong")
-        else
-            m.kong.sprite.SetRegion(region)
-            m.kong.sprite.MoveTo(x, y + m.yOff)
-        end if
+        m.kong.sprite.MoveTo(x, y + m.yOff)
     end if
 End Sub
 
@@ -508,9 +553,11 @@ Function CheckBoardSuccess() as boolean
 End Function
 
 Sub UpdateBonusTimer()
-    if m.bonus.time < m.timer.TotalMilliseconds()
-        if m.currentBonus >= 100 then m.currentBonus -= 100
+    if m.currentBonus >= 100 and m.timer.TotalMilliseconds() > m.bonus.time
+        m.currentBonus -= 100
         m.timer.mark()
+    else if m.currentBonus = 0 and m.timer.TotalMilliseconds() > 4283 and m.jumpman.state <> m.jumpman.STATE_JUMP
+        m.jumpman.alive = false
     end if
 End Sub
 
@@ -564,6 +611,7 @@ Sub DestroyStage()
 End Sub
 
 Sub PauseGame()
+    m.audioPlayer.Pause()
     text = "GAME  PAUSED"
     textWidth = m.gameFont.GetOneLineWidth(text, m.gameWidth)
     textHeight = m.gameFont.GetOneLineHeight()
@@ -576,6 +624,8 @@ Sub PauseGame()
         key = wait(0, m.port)
         if key = m.code.BUTTON_PLAY_PRESSED then exit while
     end while
+    m.audioPlayer.Play()
+    m.clock.Mark()
 End Sub
 
 Sub GameOver()

@@ -113,6 +113,7 @@ Sub ResetGame()
     g.board.redraw = true
     g.rivets = 0
     g.elevators = []
+    g.belts = []
     'Create Objects
     if g.objects = invalid
         g.objects = []
@@ -127,7 +128,15 @@ Sub ResetGame()
             else
                 g.objects[i].offsetY = 0
             end if
-            g.objects[i].frameName = obj.name
+            if obj.animation <> invalid
+                g.objects[i].animation = obj.animation
+                g.objects[i].frameName = obj.name + "-1"
+            else if obj.side <> invalid
+                g.objects[i].side = obj.side
+                g.objects[i].frameName = obj.name + "-1"
+            else
+                g.objects[i].frameName = obj.name
+            end if
             g.objects[i].frame = 0
             if obj.cx <> invalid
                 g.objects[i].cx = obj.cx
@@ -136,9 +145,24 @@ Sub ResetGame()
                 g.objects[i].ch = obj.ch
             end if
             g.objects[i].collide = (obj.collide = invalid or obj.collide)
-            g.objects[i].z = g.const.OBJECTS_Z
+            if obj.z <> invalid
+                g.objects[i].z = obj.z
+            else
+                g.objects[i].z = g.const.OBJECTS_Z
+            end if
             if obj.name = "rivet"
                 g.rivets++
+            else if obj.name = "conveyor"
+                if g.belts.Count() < obj.belt + 1
+                    g.belts.Push({xl: 0, xr: 27, y: obj.blockY, conveyors: [], direction: obj.direction})
+                end if
+                g.objects[i].belt = obj.belt
+                g.belts[obj.belt].conveyors.Push(i)
+                if obj.side = "L" and obj.blockX > g.belts[obj.belt].xl
+                    g.belts[obj.belt].xl = obj.blockX
+                else if obj.side = "R" and obj.blockX < g.belts[obj.belt].xr
+                    g.belts[obj.belt].xr = obj.blockX
+                end if
             else if obj.name = "elevator-1"
                 g.objects[i].z = g.const.OBJECTS_Z + 1
                 elevator = {up: obj.up, t: obj.blockY, ot: obj.offsetY, p:[]}
@@ -156,20 +180,12 @@ Sub ResetGame()
     end if
     'Create Jumpman
     if g.jumpman = invalid
-        g.jumpman = CreateJumpman(g.board)
+        g.jumpman = CreateJumpman()
     else
         g.jumpman.startBoard(g.board)
     end if
     'Create Kong
-    if g.kong = invalid
-        g.kong = {}
-        g.kong.blockX = g.board.kong.blockX
-        g.kong.blockY = g.board.kong.blockY
-        g.kong.offsetX = 0
-        g.kong.offsetY = g.board.map[g.kong.blockY][Int(g.kong.blockX / 2)].o - 1
-        g.kong.frameName = "kong-1"
-        g.kong.frame = 0
-    end if
+    g.kong = CreateKong()
     'Create Lady
     if g.lady = invalid
         g.lady = {}
@@ -210,9 +226,10 @@ End Sub
 Sub LoadAnimations()
     if m.anims = invalid then m.anims = {}
     if m.anims.kong = invalid
-        'm.anims.kong = ParseJson(ReadAsciiFile("pkg:/assets/anims/kong.json"))
+        m.anims.kong = ParseJson(ReadAsciiFile("pkg:/assets/anims/kong.json"))
         m.anims.jumpman = ParseJson(ReadAsciiFile("pkg:/assets/anims/mario.json"))
         m.anims.lady = ParseJson(ReadAsciiFile("pkg:/assets/anims/pauline.json"))
+        m.anims.objects = ParseJson(ReadAsciiFile("pkg:/assets/anims/objects.json"))
     end if
 End Sub
 
