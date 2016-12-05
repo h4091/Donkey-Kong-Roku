@@ -2,11 +2,7 @@ title=Donkey Kong
 subtitle=Roku remake of the Classic Arcade Game
 major_version=0
 minor_version=8
-<<<<<<< HEAD
 build_version=217
-=======
-build_version=216
->>>>>>> origin/master
 mm_icon_focus_hd=pkg:/images/icon_focus_hd.png
 mm_icon_side_hd=pkg:/images/icon_focus_hd.png
 mm_icon_focus_sd=pkg:/images/icon_side_hd.png
