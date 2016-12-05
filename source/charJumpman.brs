@@ -25,6 +25,7 @@ Function CreateJumpman() as object
     this.alive = false
     this.usedCheat = false
     this.lives = m.const.START_LIVES
+    this.immortal = false 'flag to enable/disable jumpman immortality
     'Methods
     this.startBoard = start_board_jumpman
     this.update = update_jumpman
@@ -289,7 +290,7 @@ Sub move_jumpman(action)
             m.offsetY = curFloor
             fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
             if fallHeight  >= m.const.BLOCK_HEIGHT
-                m.alive = false
+                m.alive = m.immortal
                 print "landed dead "; fallHeight
             else
                 print "landed safe "; fallHeight
@@ -334,7 +335,7 @@ Sub move_jumpman(action)
             m.offsetY = curFloor
             fallHeight = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY) - m.startY
             if fallHeight  >= m.const.BLOCK_HEIGHT
-                m.alive = false
+                m.alive = m.immortal
                 if Right(m.charAction,4) = "Left"
                     m.charAction = "landLeft"
                 else

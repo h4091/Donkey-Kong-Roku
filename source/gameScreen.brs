@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: November 2016
+' **  Updated: December 2016
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -17,13 +17,11 @@ Sub PlayGame()
     'Initialize flags and aux variables
     m.debug = false
     m.gameOver = false
-    m.speed = 30
-    m.yOff = 20
     'Game Loop
     m.clock.Mark()
     while true
         event = m.port.GetMessage()
-        if type(event) = "roUniversalControlEvent"
+        if type(event) = "roUniversalControlEvent" and m.board.sprite <> invalid
             'Handle Remote Control events
             id = event.GetInt()
             if id = m.code.BUTTON_BACK_PRESSED
@@ -45,6 +43,7 @@ Sub PlayGame()
                     m.jumpman.usedCheat = true
                 end if
             else if ControlNext(id)
+                if m.board.name = "rivets" then FinishLevelScene()
                 NextBoard()
                 m.jumpman.usedCheat = true
             else if ControlDebug(id)
@@ -89,11 +88,11 @@ Sub PlayGame()
                             m.clock.Mark()
                         end if
                     else if m.board.name = "rivets" and m.rivets = 0
-                        'TODO: Show finish level animation
+                        FinishLevelScene()
                         AddScore(m.currentBonus)
                         NextBoard()
                     else if CheckBoardSuccess()
-                        BoardComplete()
+                        BoardCompleteScene()
                         AddScore(m.currentBonus)
                         NextBoard()
                     end if
@@ -389,8 +388,8 @@ Sub JumpmanUpdate()
                 else if objName = "hammer"
                     print "got hammer!"
                     objSprite.Remove()
-                else if not m.immortal
-                    m.jumpman.alive = false
+                else
+                    m.jumpman.alive = m.jumpman.immortal
                 end if
             end if
         end if
@@ -519,35 +518,6 @@ Sub BoardStartup()
     m.timer.mark()
 End Sub
 
-Sub BoardComplete()
-    'TODO: show board complete animation
-    StopAudio()
-    x = m.lady.sprite.GetX()
-    if m.lady.face = m.const.FACE_LEFT
-        m.lady.frameName = "pauline-8"
-        m.jumpman.frameName = "mario-52"
-        x -= 32
-    else
-        m.lady.frameName = "pauline-3"
-        m.jumpman.frameName = "mario-7"
-        x += 34
-    end if
-    ticks = m.clock.TotalMilliseconds()
-    m.jumpman.sprite.SetRegion(m.regions.jumpman.Lookup(m.jumpman.frameName))
-    m.jumpman.sprite.MoveOffset(0, -2)
-    m.lady.sprite.SetRegion(m.regions.lady.Lookup(m.lady.frameName))
-    m.lady.help.sprite.SetDrawableFlag(false)
-    rgn = m.regions.lady.Lookup("heart-1")
-    m.heart = m.compositor.NewSprite(x, 4, rgn, m.const.CHARS_Z)
-    m.compositor.AnimationTick(ticks)
-    m.compositor.DrawAll()
-    DrawScore()
-    m.mainScreen.SwapBuffers()
-    Sleep(500)
-    PlaySound("finish-board")
-    Sleep(2500)
-End Sub
-
 Function CheckBoardSuccess() as boolean
     return (m.board.complete <> invalid and m.jumpman.blockY = m.board.complete.y and m.jumpman.offsetY = m.board.complete.o)
 End Function
@@ -557,7 +527,7 @@ Sub UpdateBonusTimer()
         m.currentBonus -= 100
         m.timer.mark()
     else if m.currentBonus = 0 and m.timer.TotalMilliseconds() > 4283 and m.jumpman.state <> m.jumpman.STATE_JUMP
-        m.jumpman.alive = false
+        m.jumpman.alive = m.jumpman.immortal
     end if
 End Sub
 
@@ -590,6 +560,13 @@ Sub DestroyChars()
         m.heart.Remove()
         m.heart = invalid
     end if
+End Sub
+
+Sub DestroyStage()
+    if m.board.sprite <> invalid
+        m.board.sprite.Remove()
+        m.board.sprite = invalid
+    end if
     if m.objects <> invalid
         for i = 0 to m.objects.Count()
             if m.objects[i] <> invalid
@@ -600,13 +577,6 @@ Sub DestroyChars()
             end if
         next
         m.objects = invalid
-    end if
-End Sub
-
-Sub DestroyStage()
-    if m.board.sprite <> invalid
-        m.board.sprite.Remove()
-        m.board.sprite = invalid
     end if
 End Sub
 

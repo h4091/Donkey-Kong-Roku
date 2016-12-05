@@ -1,5 +1,10 @@
 #Donkey Kong for Roku - Changelog
 
+#####v0.8 - 04-Dec-2016 - Game Intro, Board and Level Complete scenes
+* Add: Game Introduction cut scene - #1
+* Add: End of level animation - #2
+* Add: Board Complete scene - #19
+
 #####v0.7 - 25-Nov-2016 - Invisible walls, Conveyor Belts, Oil Flames and Kong animations
 * Add: Support for the invisible walls (jump bounces back)
 * Add: Jumpman dies at 4283 millisecons after bonus countdown is zero

@@ -1,7 +1,7 @@
 # Donkey Kong for Roku
 Remake of the classsic arcade game Donkey Kong (1981) for Roku streaming devices and TVs
 
-![Donkey Kong for Roku](http://lvcabral.com/images/DK/dk_screenshot_05.png)
+![Donkey Kong for Roku](http://lvcabral.com/images/dk/dk_mosaic.png)
 
 After finishing the remake of two other classic games to Roku platform, [Prince of Persia for Roku](https://github.com/lvcabral/Prince-of-Persia-Roku) and [Lode Runner for Roku](https://github.com/lvcabral/Lode-Runner-Roku), I decided to do the same with the original Arcade version of the iconic Donkey Kong. Different from the other two games, this time I want to remake the game not porting any part of the original code (Prince is mostly ported and Lode Runner has the AI ported). I'm developing it based on my observation of the game mechanics and the great amount of information available online, on sites like http://wiki.donkeykonggenius.com/ and http://donkeykongblog.blogspot.com.br/ that describes details of the game to help players develop strategies.
 

@@ -22,6 +22,8 @@ Function GetConstants() as object
     const.FACE_LEFT  = 1
     const.FACE_RIGHT = 2
 
+    const.GAME_SPEED = 30
+    
     const.START_LIVES = 3
     const.POINTS_LIFE = 7000
 

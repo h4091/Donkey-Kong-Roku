@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: November 2016
+' **  Updated: December 2016
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -31,7 +31,6 @@ Sub Main()
     m.gameFont = m.fonts.getFont("Press Start 2P", 16, false, false)
     m.manifest = GetManifestArray()
     m.settings = LoadSettings()
-    m.immortal = false 'flag to enable/disable jumpman immortality
     m.isOpenGL = isOpenGL()
     selection = m.const.MENU_START
     LoadGameSprites()
@@ -48,9 +47,11 @@ Sub Main()
             m.highScore = m.settings.highScores[0].score
             m.currentLevel = 1
             m.currentBoard = 1
-            m.speed = 30
+            m.speed = m.const.GAME_SPEED
+            m.yOff = 20
             ResetGame()
-            PlayIntro(3000)
+            GameLogo(3000)
+            IntroScene()
             LevelHeightScreen()
             PlayGame()
         else if selection = m.const.MENU_CREDITS
@@ -61,7 +62,7 @@ Sub Main()
     end while
 End Sub
 
-Sub PlayIntro(waitTime as integer)
+Sub GameLogo(waitTime as integer)
     screen = m.mainScreen
     Sleep(500) ' Give time to Roku clear list screen from memory
     if m.isOpenGL
