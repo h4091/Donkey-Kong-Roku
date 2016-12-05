@@ -17,13 +17,31 @@
         },
         "finish-board": {
             "type": "wav",
-            "duration": 1854,
+            "duration": 4015,
             "priority": 30
+        },
+        "finish-level-1":
+        {
+           "type":"wav",
+           "duration":12050,
+           "priority":30
+        },
+        "finish-level-2":
+        {
+           "type":"wav",
+           "duration":11960,
+           "priority":10
         },
         "get-item": {
             "type": "wav",
             "duration": 679,
             "priority": 20
+        },
+        "intro-scene":
+        {
+           "type":"wav",
+           "duration":11203,
+           "priority":10
         },
         "jump": {
             "type": "wav",

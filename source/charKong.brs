@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: November 2016
-' **  Updated: November 2016
+' **  Updated: December 2016
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -23,12 +23,14 @@ Function CreateKong()
     this.offsetX = 0
     this.offsetY = m.board.map[this.blockY][Int(this.blockX / 2)].o - 1
     if m.board.name = "barrels"
-        this.charAction = "rollBlueBarrel"
+        this.charAction = "rollOrangeBarrel"
     else
         this.charAction = "shakeArms"
     end if
     this.frameName = "kong-1"
     this.frame = 0
+    this.frameOffset = {x: 0, y: 0}
+    this.frameEvent = ""
     if m.board.kong.belt <> invalid
         this.belt = m.board.kong.belt
     end if
@@ -41,7 +43,19 @@ Function CreateKong()
 End Function
 
 Sub update_kong()
-    if m.belt <> invalid and GetBlockType(m.blockX, m.blockY) = m.const.MAP_CONV_BELT
+    if m.charAction = "lostFloor" or m.charAction = "kidnapLady" or m.charAction = "kidnapConv"
+        actionArray = m.anims.kong.sequence.Lookup(m.charAction)
+        m.frameName = "kong-" + itostr(actionArray[m.frame].id)
+        m.frameOffset = {x: 0, y: 0}
+        m.frameEvent = ""
+        if actionArray[m.frame].x <> invalid then m.frameOffset.x = actionArray[m.frame].x
+        if actionArray[m.frame].y <> invalid then m.frameOffset.y = actionArray[m.frame].y
+        if actionArray[m.frame].e <> invalid then m.frameEvent = actionArray[m.frame].e
+        m.frame++
+        if m.frame = actionArray.Count()
+            m.frame = actionArray.Count() - 1
+        end if
+    else if m.belt <> invalid and GetBlockType(m.blockX, m.blockY) = m.const.MAP_CONV_BELT
         if m.belts[m.belt].direction = "L"
             m.offsetX -= 2
         else
