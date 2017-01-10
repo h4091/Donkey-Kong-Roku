@@ -65,10 +65,8 @@ End Sub
 Sub GameLogo(waitTime as integer)
     screen = m.mainScreen
     Sleep(500) ' Give time to Roku clear list screen from memory
-    if m.isOpenGL
-        screen.Clear(m.colors.black)
-        screen.SwapBuffers()
-    end if
+    screen.Clear(m.colors.black)
+    screen.SwapBuffers()
     imgIntro1 = "pkg:/assets/images/start-screen-1.png"
     imgIntro2 = "pkg:/assets/images/start-screen-2.png"
     bmp1 = CreateObject("roBitmap", imgIntro1)

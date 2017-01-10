@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: December 2016
+' **  Updated: January 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -110,12 +110,12 @@ Sub move_jumpman(action)
     if m.state < m.STATE_JUMP then m.state = m.STATE_STOP
     if action = m.const.ACT_CLIMB_UP
         curFloor = GetFloorOffset(m.blockX, m.blockY)
-        if m.charAction = "standUp" and m.frame = 11
+        if m.charAction = "climbUp" and m.frame = 11
             m.offsetY = GetFloorOffset(m.blockX, m.blockY)
             m.charAction = "stand"
             m.state = m.STATE_STOP
         else if IsTopLadder(curBlock) or (IsBottomLadder(curBlock) and curFloor <> m.offsetY) or (IsLadder(downBlock) and m.offsetY > curFloor and not IsTileEmpty(curBlock)) or (curFloor = 0 and IsLadder(upBlock))
-            if m.charAction <> "runUpDown" and m.charAction <> "standUp"
+            if m.charAction <> "runUpDown" and m.charAction <> "climbUp"
                 m.charAction = "runUpDown"
                 m.frame = 0
             end if
@@ -127,7 +127,7 @@ Sub move_jumpman(action)
                 m.offsetY += m.const.BLOCK_HEIGHT
             end if
             upFloor = GetFloorOffset(m.blockX, m.blockY - 1)
-            if m.charAction <> "standUp" and ((IsFloorUp(upblock) and upFloor > 0) or (IsFloorUp(curBlock) and curFloor = 0))
+            if m.charAction <> "climbUp" and ((IsFloorUp(upblock) and upFloor > 0) or (IsFloorUp(curBlock) and curFloor = 0))
                 if curFloor = 0
                     limitY = m.const.BLOCK_HEIGHT - 6
                 else
@@ -136,14 +136,17 @@ Sub move_jumpman(action)
                 print "limitY="; limitY
                 if m.offsetY <= limitY
                     print "standing up"
-                    m.charAction = "standUp"
+                    m.charAction = "climbUp"
                     m.frame = 0
                 end if
             end if
         end if
     else if action = m.const.ACT_CLIMB_DOWN
         if (IsLadder(curBlock) and m.offsetY < GetFloorOffset(m.blockX, m.blockY)) or IsLadder(downBlock)
-            if m.charAction <> "runUpDown"
+            if m.charAction <> "climbDown" and m.charAction <> "runUpDown"
+                m.charAction = "climbDown"
+                m.frame = 0
+            else if m.charAction = "climbDown" and m.frame = 11
                 m.charAction = "runUpDown"
                 m.frame = 0
             end if
