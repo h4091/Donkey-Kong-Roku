@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: November 2016
+' **  Updated: January 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -22,8 +22,9 @@ Function GetConstants() as object
     const.FACE_LEFT  = 1
     const.FACE_RIGHT = 2
 
-    const.GAME_SPEED = 30
-    
+    const.GAME_SPEED  = 30
+    const.HAMMER_TIME = 500
+
     const.START_LIVES = 3
     const.POINTS_LIFE = 7000
 

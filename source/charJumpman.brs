@@ -32,6 +32,7 @@ Function CreateJumpman() as object
     this.move = move_jumpman
     this.startFall = start_fall_jumpman
     this.frameUpdate = frame_update_jumpman
+    this.getFrameName = get_frame_name_jumpman
     this.frameOffsetX = frame_offset_x
     this.frameOffsetY = frame_offset_y
     this.keyU = key_u
@@ -63,15 +64,15 @@ Sub update_jumpman()
     'Update jumpman position
     if m.state > m.STATE_MOVE
         m.move(m.const.ACT_NONE)
-    else if m.keyJ() and m.keyR()
+    else if m.keyJ() and m.keyR() and m.hammer = invalid
         m.move(m.const.ACT_JUMP_RIGHT)
-    else if m.keyJ() and m.keyL()
+    else if m.keyJ() and m.keyL() and m.hammer = invalid
         m.move(m.const.ACT_JUMP_LEFT)
-    else if m.keyJ()
+    else if m.keyJ() and m.hammer = invalid
         m.move(m.const.ACT_JUMP_UP)
-    else if m.keyU()
+    else if m.keyU() and m.hammer = invalid
         m.move(m.const.ACT_CLIMB_UP)
-    else if m.keyD()
+    else if m.keyD() and m.hammer = invalid
         m.move(m.const.ACT_CLIMB_DOWN)
     else if m.keyL()
         m.move(m.const.ACT_RUN_LEFT)
@@ -86,7 +87,18 @@ End Sub
 
 Sub frame_update_jumpman()
     'Update animation frame
-    if m.state <> m.STATE_STOP and m.state <> m.STATE_FALL
+    if Left(m.charAction, 3) = "hit"
+        if m.hammer.up then ps = "Up" else ps = "Dn"
+        actionArray = m.anims.jumpman.sequence.Lookup(m.charAction + ps)
+        if m.state <> m.STATE_STOP
+            m.frameName = "mario-" + itostr(actionArray[m.frame].id)
+        else
+            m.frameName = "mario-" + itostr(actionArray[2].id)
+        end if
+        m.frame++
+        if ((m.frame + 1) mod 4) = 0 then m.hammer.up = not m.hammer.up
+        if m.frame >= actionArray.Count() then m.frame = 0
+    else if m.state <> m.STATE_STOP and m.state <> m.STATE_FALL
         actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
         m.frameName = "mario-" + itostr(actionArray[m.frame].id)
         m.frame++
@@ -99,6 +111,11 @@ Sub frame_update_jumpman()
         end if
     end if
 End Sub
+
+Function get_frame_name_jumpman(action as string, frame as integer) as string
+    actionArray = m.anims.jumpman.sequence.Lookup(action)
+    return "mario-" + itostr(actionArray[frame].id)
+End Function
 
 Sub move_jumpman(action)
     upBlock = invalid
@@ -160,9 +177,12 @@ Sub move_jumpman(action)
         end if
     else if action = m.const.ACT_RUN_LEFT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if m.charAction <> "runLeft"
+            if m.charAction <> "runLeft" and m.hammer = invalid
                  m.charAction = "runLeft"
                  m.frame = 0
+            else if m.charAction <> "hitLeft" and m.hammer <> invalid
+                m.charAction = "hitLeft"
+                m.frame = 0
             end if
             if GetBlockType(m.blockX - 1, m.blockY) <> m.const.MAP_INV_WALL or m.offsetX > 0
                 m.state = m.STATE_MOVE
@@ -196,8 +216,11 @@ Sub move_jumpman(action)
         end if
     else if action = m.const.ACT_RUN_RIGHT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if m.charAction <> "runRight"
+            if m.charAction <> "runRight" and m.hammer = invalid
                 m.charAction = "runRight"
+                m.frame = 0
+            else if m.charAction <> "hitRight" and m.hammer <> invalid
+                m.charAction = "hitRight"
                 m.frame = 0
             end if
             if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
@@ -298,6 +321,10 @@ Sub move_jumpman(action)
             else
                 print "landed safe "; fallHeight
             end if
+            if m.alive and m.hammer <> invalid
+                m.charAction = m.charAction.Replace("run", "hit")
+                m.frame = 0
+            end if
         else
             if m.jump <> m.const.ACT_JUMP_UP
                 if m.jump = m.const.ACT_JUMP_LEFT
@@ -389,12 +416,22 @@ Sub start_fall_jumpman()
 End Sub
 
 Function frame_offset_x() as integer
-    actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
+    if Left(m.charAction, 3) = "hit"
+        if m.hammer.up then ps = "Up" else ps = "Dn"
+    else
+        ps = ""
+    end if
+    actionArray = m.anims.jumpman.sequence.Lookup(m.charAction + ps)
     return actionArray[m.frame].x
 End Function
 
 Function frame_offset_y() as integer
-    actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
+    if Left(m.charAction, 3) = "hit"
+        if m.hammer.up then ps = "Up" else ps = "Dn"
+    else
+        ps = ""
+    end if
+    actionArray = m.anims.jumpman.sequence.Lookup(m.charAction + ps)
     return actionArray[m.frame].y
 End Function
 

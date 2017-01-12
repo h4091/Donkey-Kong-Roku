@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: December 2016
+' **  Updated: January 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -387,9 +387,86 @@ Sub JumpmanUpdate()
                     PlaySound("get-item")
                 else if objName = "hammer"
                     print "got hammer!"
-                    objSprite.Remove()
+                    m.jumpman.hammer = {}
+                    m.jumpman.hammer.countdown = m.const.HAMMER_TIME
+                    m.jumpman.hammer.color = "hbr"
+                    m.jumpman.hammer.up = true
+                    m.jumpman.hammer.sprite = objSprite
+                    StopSound()
+                    PlaySong("background-3", true)
                 else
                     m.jumpman.alive = m.jumpman.immortal
+                end if
+            end if
+            if not m.jumpman.alive
+                if m.jumpman.hammer <> invalid
+                    m.jumpman.hammer.sprite.Remove()
+                    m.jumpman.hammer.sprite = invalid
+                    m.jumpman.hammer = invalid
+                end if
+            else if m.jumpman.state = m.jumpman.STATE_JUMP and m.jumpman.hammer <> invalid
+                m.jumpman.hammer.sprite.MoveTo(x + 4, y - 20 + m.yOff)
+            else if Left(m.jumpman.charAction, 3) = "hit"
+                m.jumpman.hammer.countdown--
+                if m.jumpman.hammer.countdown = 0
+                    'replace jumpman frame
+                    m.jumpman.charAction = m.jumpman.charAction.Replace("hit", "run")
+                    m.jumpman.frame = 0
+                    m.jumpman.frameName = m.jumpman.getFrameName(m.jumpman.charAction, m.jumpman.frame)
+                    region = m.regions.jumpman.Lookup(m.jumpman.frameName)
+                    region.SetCollisionRectangle(11, 16, 10, 16)
+                    region.SetCollisionType(1)
+                    m.jumpman.sprite.SetRegion(region)
+                    'remove hammer sprite
+                    m.jumpman.hammer.sprite.Remove()
+                    m.jumpman.hammer.sprite = invalid
+                    m.jumpman.hammer = invalid
+                    'restore board background audio
+                    StopSound()
+                    if m.board.audio <> invalid then PlaySong(m.board.audio, true)
+                else
+                    if m.jumpman.hammer.countdown < m.const.HAMMER_TIME / 2
+                        if m.jumpman.hammer.countdown mod 3 = 0
+                            if m.jumpman.hammer.color = "hbr"
+                                m.jumpman.hammer.color = "hor"
+                            else
+                                m.jumpman.hammer.color = "hbr"
+                            end if
+                        end if
+                    end if
+                    haction = m.jumpman.charAction.Replace("hit", m.jumpman.hammer.color)
+                    if m.jumpman.hammer.up then ps = "Up" else ps = "Dn"
+                    if m.jumpman.state <> m.jumpman.STATE_STOP
+                        hframe = m.jumpman.getFrameName(haction + ps, m.jumpman.frame)
+                    else
+                        hframe = m.jumpman.getFrameName(haction + ps, 2)
+                    end if
+                    hrgn = m.regions.jumpman.Lookup(hframe)
+                    hx = x
+                    hy = y
+                    if hrgn.GetWidth() > m.const.BLOCK_WIDTH * 2
+                        if Mid(haction, 4, 4) = "Left"
+                            hx -= (hrgn.GetWidth() - m.const.BLOCK_WIDTH * 2)
+                            hrgn.SetCollisionRectangle(0, 12, 14, 16)
+                        else
+                            hrgn.SetCollisionRectangle(42, 12, 14, 16)
+                        end if
+                    else if hrgn.GetHeight() > m.const.BLOCK_HEIGHT
+                        hy -= (hrgn.GetHeight() - m.const.BLOCK_HEIGHT)
+                        if Mid(haction, 4, 4) = "Left"
+                            hrgn.SetCollisionRectangle(6, 2, 18, 10)
+                        else
+                            hrgn.SetCollisionRectangle(8, 2, 18, 10)
+                        end if
+                    end if
+                    hrgn.SetCollisionType(1)
+                    m.jumpman.hammer.sprite.SetRegion(hrgn)
+                    m.jumpman.hammer.sprite.MoveTo(hx, hy + m.yOff)
+                    objHit = m.jumpman.hammer.sprite.CheckCollision()
+                    if objHit <> invalid and objHit.GetData() = "barrel"
+                        print "hit barrel"
+                        'TODO: Kill barrels
+                    end if
                 end if
             end if
         end if
@@ -554,6 +631,13 @@ Sub DestroyChars()
         if m.jumpman.sprite <> invalid
             m.jumpman.sprite.Remove()
             m.jumpman.sprite = invalid
+        end if
+        if m.jumpman.hammer <> invalid
+            if m.jumpman.hammer.sprite <> invalid
+                m.jumpman.hammer.sprite.Remove()
+                m.jumpman.hammer.sprite = invalid
+            end if
+            m.jumpman.hammer = invalid
         end if
     end if
     if m.heart <> invalid

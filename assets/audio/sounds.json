@@ -10,6 +10,11 @@
             "duration": 966,
             "priority": 10
         },
+        "background-3": {
+           "type":"mp3",
+           "duration":3030,
+           "priority":10
+        },
         "death": {
             "type": "wav",
             "duration": 3075,
