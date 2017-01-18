@@ -127,16 +127,20 @@ Sub ResetGame()
             else
                 g.objects[i].offsetY = 0
             end if
+            'Setup object sprite
             if obj.animation <> invalid
                 g.objects[i].animation = obj.animation
                 g.objects[i].frameName = obj.name + "-1"
             else if obj.side <> invalid
                 g.objects[i].side = obj.side
                 g.objects[i].frameName = obj.name + "-1"
+            else if obj.image <> invalid
+                g.objects[i].frameName = obj.image
             else
                 g.objects[i].frameName = obj.name
             end if
             g.objects[i].frame = 0
+            'Setup collision mask
             if obj.cx <> invalid
                 g.objects[i].cx = obj.cx
                 g.objects[i].cy = obj.cy
@@ -144,13 +148,16 @@ Sub ResetGame()
                 g.objects[i].ch = obj.ch
             end if
             g.objects[i].collide = (obj.collide = invalid or obj.collide)
+            'Setup sprite Z coordinate
             if obj.z <> invalid
                 g.objects[i].z = obj.z
             else
                 g.objects[i].z = g.const.OBJECTS_Z
             end if
+            'Setup special objects
             if obj.name = "rivet"
                 g.rivets++
+                g.board.map[obj.blockY][Int(obj.blockX / 2)].rivet = true
             else if obj.name = "conveyor"
                 if g.belts.Count() < obj.belt + 1
                     g.belts.Push({xl: 0, xr: 27, y: obj.blockY, conveyors: [], direction: obj.direction})

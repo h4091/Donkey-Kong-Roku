@@ -38,8 +38,8 @@ Function GetConstants() as object
     const.MAP_TOP_LADDER  = 2
     const.MAP_TOP_BROKEN  = 3
     const.MAP_BTTM_LADDER = 4
-    const.MAP_BTTM_BROKEN = 5
-    const.MAP_FULL_LADDER = 6
+    const.MAP_FULL_LADDER = 5
+    const.MAP_RIVET       = 6
     const.MAP_ELEVATOR    = 7
     const.MAP_CONV_BELT   = 8
     const.MAP_INV_WALL    = 9
@@ -117,10 +117,15 @@ Function GetBlockType(blockX as integer, blockY as integer) as integer
     ty = blockY
     mapTile = m.board.map[ty][tx]
     if isOdd(blockX)
-        return mapTile.r
+        blockType = mapTile.r
     else
-        return mapTile.l
+        blockType = mapTile.l
     end if
+    if blockType = m.const.MAP_RIVET and mapTile.rivet = invalid
+        blockType = m.const.MAP_EMPTY
+        print "Rivet disabled"; blockX, blockY
+    end if
+    return blockType
 End Function
 
 Function GetPlatform(blockX as integer, blockY as integer) as integer
@@ -156,11 +161,11 @@ Function IsBottomLadder(block) as boolean
 End Function
 
 Function IsFloor(block) as boolean
-    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT)
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_RIVET)
 End Function
 
 Function IsFloorDown(block) as boolean
-    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_TOP_LADDER or block = m.const.MAP_BTTM_LADDER)
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_TOP_LADDER or block = m.const.MAP_BTTM_LADDER or block = m.const.MAP_RIVET)
 End Function
 
 Function IsFloorUp(block) as boolean

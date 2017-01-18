@@ -201,7 +201,13 @@ Sub ObjectsUpdate()
                 else
                     obj.countdown--
                 end if
-                if obj.countdown = 0 then obj.sprite.Remove()
+                if obj.countdown = 0
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    if GetBlockType(obj.blockX, obj.blockY) = m.const.MAP_RIVET
+                        m.board.map[obj.blockY][Int(obj.blockX / 2)].rivet = invalid
+                    end if
+                end if
             else if obj.belt <> invalid
                 if Right(obj.sprite.GetData(), 1) <> m.belts[obj.belt].direction
                     animation = obj.name + obj.side + m.belts[obj.belt].direction
@@ -238,8 +244,8 @@ Sub ObjectsUpdate()
                         mapY = platform.y
                         mapO = platform.o - 16
                         if mapO < 0
-                            mapY--
-                            mapO += m.const.BLOCK_HEIGHT
+                             mapY--
+                             mapO += m.const.BLOCK_HEIGHT
                         end if
                         SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     else
@@ -259,10 +265,10 @@ Sub ObjectsUpdate()
                         obj.sprite.MoveOffset(0, 2)
                         mapY = platform.y
                         mapO = platform.o - 16
-                        if mapO < 0
-                            mapY--
-                            mapO += m.const.BLOCK_HEIGHT
-                        end if
+                        ' if mapO > m.const.BLOCK_HEIGHT and mapY < 13
+                        '     mapY++
+                        '     mapO -= m.const.BLOCK_HEIGHT
+                        ' end if
                         SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     else
                         platform.y = elevator.t

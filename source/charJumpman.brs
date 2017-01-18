@@ -192,7 +192,7 @@ Sub move_jumpman(action)
                     m.offsetX += m.const.BLOCK_WIDTH
                 end if
                 if downBlock <> invalid then downBlock = GetBlockType(m.blockX, m.blockY + 1)
-                if GetFloorOffset(m.blockX, m.blockY) = -1
+                if GetFloorOffset(m.blockX, m.blockY) = -1 or IsTileEmpty(GetBlockType(m.blockX, m.blockY))
                     if IsTileEmpty(downBlock)
                         m.startFall()
                     else if downBlock <> invalid
@@ -223,7 +223,7 @@ Sub move_jumpman(action)
                 m.charAction = "hitRight"
                 m.frame = 0
             end if
-            if m.blockX < m.const.BLOCKS_X-2 or m.offsetX < 0
+            if m.blockX < m.const.BLOCKS_X - 1 or m.offsetX < -(m.const.BLOCK_WIDTH / 4)
                 m.state = m.STATE_MOVE
                 m.offsetX += m.frameOffsetX()
                 if m.offsetX >= m.const.BLOCK_WIDTH / 4
@@ -284,17 +284,19 @@ Sub move_jumpman(action)
         end if
     else if action = m.const.ACT_JUMP_RIGHT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
-            if Left(m.charAction, 4) <> "jump"
-                if m.charAction = "runLeft"
-                    m.charAction = "jumpLeft"
-                else
-                    m.charAction = "jumpRight"
+            if m.blockX < m.const.BLOCKS_X - 1 or m.offsetX < -(m.const.BLOCK_WIDTH / 4)
+                if Left(m.charAction, 4) <> "jump"
+                    if m.charAction = "runLeft"
+                        m.charAction = "jumpLeft"
+                    else
+                        m.charAction = "jumpRight"
+                    end if
+                    m.frame = 0
                 end if
-                m.frame = 0
+                m.jump = action
+                m.state = m.STATE_JUMP
+                m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
             end if
-            m.jump = action
-            m.state = m.STATE_JUMP
-            m.startY = ((m.blockY * m.const.BLOCK_HEIGHT) + m.offsetY)
         end if
     end if
     'Update jump
