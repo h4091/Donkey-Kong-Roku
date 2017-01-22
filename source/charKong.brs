@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: November 2016
-' **  Updated: December 2016
+' **  Updated: January 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -24,6 +24,7 @@ Function CreateKong()
     this.offsetY = m.board.map[this.blockY][Int(this.blockX / 2)].o - 1
     if m.board.name = "barrels"
         this.charAction = "rollOrangeBarrel"
+        this.barrels = 0
     else
         this.charAction = "shakeArms"
     end if
@@ -79,6 +80,27 @@ Sub update_kong()
             end if
         else if m.blockX = 19 and m.offsetX >= 0
             m.belts[m.belt].direction = "L"
+        end if
+    else
+        actionArray = m.anims.kong.sequence.Lookup(m.charAction)
+        frame = actionArray[m.frame]
+        m.frameName = "kong-" + itostr(frame.id)
+        m.frameEvent = ""
+        if frame.t <> invalid
+            if m.cycles = invalid
+                m.cycles = Int(frame.t / m.const.GAME_SPEED)
+                if frame.e <> invalid then m.frameEvent = frame.e
+            else
+                m.cycles--
+            end if
+        else
+            m.cycles = 0
+            if frame.e <> invalid then m.frameEvent = frame.e
+        end if
+        if m.cycles = 0
+            m.frame++
+            if m.frame >= actionArray.Count() then m.frame = 0
+            m.cycles = invalid
         end if
     end if
 End Sub

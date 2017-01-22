@@ -23,7 +23,7 @@ Function GetConstants() as object
     const.FACE_RIGHT = 2
 
     const.GAME_SPEED  = 30
-    const.HAMMER_TIME = 500
+    const.HAMMER_TIME = 300 '10 seconds
 
     const.START_LIVES = 3
     const.POINTS_LIFE = 7000
@@ -36,7 +36,7 @@ Function GetConstants() as object
     const.MAP_EMPTY       = 0
     const.MAP_ONLY_FLOOR  = 1
     const.MAP_TOP_LADDER  = 2
-    const.MAP_TOP_BROKEN  = 3
+    const.MAP_BRKN_LADDER = 3
     const.MAP_BTTM_LADDER = 4
     const.MAP_FULL_LADDER = 5
     const.MAP_RIVET       = 6
@@ -52,6 +52,11 @@ Function GetConstants() as object
     const.ACT_JUMP_UP    = 5
     const.ACT_JUMP_LEFT  = 6
     const.ACT_JUMP_RIGHT = 7
+
+    const.BARREL_ROLL = 0
+    const.BARREL_FALL = 1
+
+    const.OIL_BARREL_FREQ = 8
 
     const.CONTROL_VERTICAL   = 0
     const.CONTROL_HORIZONTAL = 1
@@ -123,7 +128,6 @@ Function GetBlockType(blockX as integer, blockY as integer) as integer
     end if
     if blockType = m.const.MAP_RIVET and mapTile.rivet = invalid
         blockType = m.const.MAP_EMPTY
-        print "Rivet disabled"; blockX, blockY
     end if
     return blockType
 End Function
@@ -145,11 +149,15 @@ Function GetConveyorDirection(blockX as integer, blockY as integer) as string
 End Function
 
 Function IsTileEmpty(block) as boolean
-    return block <> invalid and block = m.const.MAP_EMPTY
+    return block <> invalid and (block = m.const.MAP_EMPTY or block = m.const.MAP_BRKN_LADDER)
 End Function
 
 Function IsLadder(block) as boolean
     return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER)
+End Function
+
+Function IsAnyLadder(block) as boolean
+    return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER or block = m.const.MAP_BRKN_LADDER)
 End Function
 
 Function IsTopLadder(block) as boolean

@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: December 2016
+' **  Updated: January 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -93,8 +93,8 @@ Sub ResetGame()
     g = GetGlobalAA()
     print "Reseting Level "; itostr(g.currentLevel)
     if g.board <> invalid
-        DestroyStage()
         DestroyChars()
+        DestroyStage()
     end if
     'Update board map
     if g.maps = invalid
@@ -106,6 +106,11 @@ Sub ResetGame()
     end if
     if m.currentLevel <= g.maps.bonus.Count()
         g.bonus = g.maps.bonus.Lookup("level-" + itostr(m.currentLevel))
+    end if
+    if m.currentLevel < 5
+        g.difficulty = {timer: 0, level: m.currentLevel}
+    else
+        g.difficulty = {timer: 0, level: 5}
     end if
     g.currentBonus = g.bonus.value
     g.board = g.maps.boards.Lookup("board-" + itostr(g.level[m.currentBoard-1]))
@@ -154,6 +159,7 @@ Sub ResetGame()
             else
                 g.objects[i].z = g.const.OBJECTS_Z
             end if
+            g.objects[i].visible = (obj.visible = invalid or obj.visible)
             'Setup special objects
             if obj.name = "rivet"
                 g.rivets++

@@ -53,6 +53,12 @@
             "duration": 888,
             "priority": 15
         },
+        "smash":
+        {
+           "type":"wav",
+           "duration":1468,
+           "priority":15
+        },
         "start-board": {
             "type": "wav",
             "duration": 2606,

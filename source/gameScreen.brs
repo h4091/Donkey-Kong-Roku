@@ -56,10 +56,7 @@ Sub PlayGame()
             ticks = m.clock.TotalMilliseconds()
             if ticks > m.speed
                 'Update sprites
-                if m.board.redraw
-                    DrawBoard()
-                    DrawObjects()
-                end if
+                if m.board.redraw then DrawBoard()
                 KongUpdate()
                 LadyUpdate()
                 ObjectsUpdate()
@@ -75,6 +72,7 @@ Sub PlayGame()
                 m.mainScreen.SwapBuffers()
                 m.clock.Mark()
                 UpdateBonusTimer()
+                UpdateDifficulty()
                 'Check jumpman death
                 if not m.gameOver
                     if not m.jumpman.alive
@@ -92,6 +90,7 @@ Sub PlayGame()
                         AddScore(m.currentBonus)
                         NextBoard()
                     else if CheckBoardSuccess()
+                        if m.board.name = "barrels" then DestroyObjects("barrel-")
                         BoardCompleteScene()
                         AddScore(m.currentBonus)
                         NextBoard()
@@ -147,48 +146,56 @@ Sub DrawBoard()
         m.board.sprite.SetRegion(rgn)
     end if
     m.board.sprite.SetMemberFlags(0)
+    'Draw objects
+    for i = 0 to m.objects.Count() - 1
+        DrawObject(m.objects[i])
+    next
     m.board.redraw = false
 End Sub
 
-Sub DrawObjects()
-    for i = 0 to m.objects.Count() - 1
-        obj = m.objects[i]
-        region = m.regions.objects.Lookup(obj.frameName)
-        if region <> invalid
-            x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
-            y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
-            if obj.sprite = invalid
+Sub DrawObject(obj as object)
+    region = m.regions.objects.Lookup(obj.frameName)
+    if region <> invalid
+        x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+        y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+        if obj.sprite = invalid
+            'Create sprite
+            if obj.animation <> invalid or obj.belt <> invalid
+                if obj.animation <> invalid
+                    animation = obj.animation
+                else
+                    animation = obj.name + obj.side + m.belts[obj.belt].direction
+                end if
+                actions = m.anims.objects.sequence.Lookup(animation)
+                regions = []
+                for each action in actions
+                    frame = m.regions.objects.Lookup(obj.name + "-" + itostr(action.id))
+                    if action.t <> invalid then frame.SetTime(action.t)
+                    'Set custom collision parameters if exists
+                    if obj.cx <> invalid
+                        frame.SetCollisionRectangle(obj.cx, obj.cy, obj.cw, obj.ch)
+                        frame.SetCollisionType(1)
+                    end if
+                    regions.Push(frame)
+                next
+                obj.sprite = m.compositor.NewAnimatedSprite(x, y + m.yOff, regions, obj.z)
+                obj.sprite.SetData(animation)
+            else
                 'Set custom collision parameters if exists
                 if obj.cx <> invalid
                     region.SetCollisionRectangle(obj.cx, obj.cy, obj.cw, obj.ch)
                     region.SetCollisionType(1)
                 end if
                 'Create sprite
-                if obj.animation <> invalid or obj.belt <> invalid
-                    if obj.animation <> invalid
-                        animation = obj.animation
-                    else
-                        animation = obj.name + obj.side + m.belts[obj.belt].direction
-                    end if
-                    actions = m.anims.objects.sequence.Lookup(animation)
-                    regions = []
-                    for each action in actions
-                        frame = m.regions.objects.Lookup(obj.name + "-" + itostr(action.id))
-                        if action.t <> invalid then frame.SetTime(action.t)
-                        regions.Push(frame)
-                    next
-                    obj.sprite = m.compositor.NewAnimatedSprite(x, y + m.yOff, regions, obj.z)
-                    obj.sprite.SetData(animation)
-                else
-                    obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, obj.z)
-                    obj.sprite.SetData(obj.name)
-                end if
-                if not obj.collide
-                    obj.sprite.SetMemberFlags(0)
-                end if
+                obj.sprite = m.compositor.NewSprite(x, y + m.yOff, region, obj.z)
+                obj.sprite.SetData(obj.name)
             end if
+            if not obj.collide
+                obj.sprite.SetMemberFlags(0)
+            end if
+            obj.sprite.SetDrawableFlag(obj.visible)
         end if
-    next
+    end if
 End Sub
 
 Sub ObjectsUpdate()
@@ -291,9 +298,45 @@ Sub ObjectsUpdate()
                         m.jumpman.offsetY -= m.const.BLOCK_HEIGHT
                     end if
                 end if
+            else if obj.sprite.GetData() = "flames"
+                flames = obj
+            else if Left(obj.sprite.GetData(), 7) = "barrel-"
+                obj.update(m.jumpman.blockY)
+                if obj.sprite.GetData() <> obj.animation
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    DrawObject(obj)
+                end if
+                if Abs(obj.offsetX) <= m.const.BLOCK_WIDTH * 2
+                    region = obj.sprite.GetRegion()
+                    x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+                    y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+                    if obj.bounce <> invalid
+                        bounceArray = [0, 1, 2, 2, 2, 1, 0, 0, 0, 1, 1]
+                        y -= bounceArray[obj.bounce]
+                        obj.bounce++
+                        if obj.bounce = bounceArray.Count() then obj.bounce = invalid
+                    end if
+                    obj.sprite.MoveTo(x, y + m.yOff)
+                    objHit = obj.sprite.CheckCollision()
+                    if objHit <> invalid and objHit.GetData() = "oil"
+                        obj.sprite.Remove()
+                        obj.sprite = invalid
+                        if flames <> invalid and flames.sprite <> invalid and not flames.visible
+                            flames.sprite.SetDrawableFlag(true)
+                            flames.visible = true
+                        end if
+                        'TODO: If blue barrel spawn a fireball (max 5)
+                    end if
+                else
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    print "destroyed barrel sprite "; m.objects.Count()
+                end if
             end if
         end if
     next
+    if flames <> invalid then m.oilOnFire = flames.visible
 End Sub
 
 Sub DrawScore(showBonus = true as boolean)
@@ -346,24 +389,42 @@ Sub JumpmanUpdate()
             m.jumpman.sprite.MoveTo(x, y + m.yOff)
             'Check jump over objects
             if m.jumpman.state = m.jumpman.STATE_JUMP and m.jumpman.frame = 10  'top of the jump
-                ptr = invalid
+                pts = 0
                 for i = 0 to m.objects.Count() - 1
                     obj = m.objects[i]
-                    if obj.sprite <> invalid and obj.sprite.GetData() = "rivet" and m.jumpman.jump <> m.const.ACT_JUMP_UP
-                        if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
-                            ptr = m.regions.objects.Lookup("points-100")
-                            AddScore(100)
-                            PlaySound("get-item")
-                            obj.sprite.MoveOffset(-8, 0)
-                            if m.rivets > 0 then m.rivets--
-                            exit for
+                    if obj.sprite <> invalid
+                        if obj.name = "rivet" and m.jumpman.jump <> m.const.ACT_JUMP_UP
+                            if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
+                                pts = 100
+                                score = obj.sprite
+                                score.MoveOffset(-8, 0)
+                                if m.rivets > 0 then m.rivets--
+                                exit for
+                            end if
+                        else if Right(obj.name, 7) = "rolling"
+                            if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
+                                if pts = 0
+                                    pts = 100
+                                    x = obj.sprite.GetX()
+                                    y = obj.sprite.GetY() - 8
+                                    rg = m.regions.objects.Lookup("points-100")
+                                    score = m.compositor.NewSprite(x, y, rg, m.const.OBJECTS_Z)
+                                    m.objects.Push({name: "score", sprite: score, blockX: obj.blockX, blockY: obj.blockY})
+                                else if pts = 100
+                                    pts = 300
+                                else
+                                    pts = 500
+                                end if
+                            end if
                         end if
                     end if
                 next
-                if ptr <> invalid
-                    obj.sprite.SetRegion(ptr)
-                    obj.sprite.SetMemberFlags(0)
-                    obj.sprite.SetData("score")
+                if pts > 0
+                    AddScore(pts)
+                    PlaySound("get-item")
+                    score.SetRegion(m.regions.objects.Lookup("points-" + itostr(pts)))
+                    score.SetMemberFlags(0)
+                    score.SetData("score")
                 end if
             end if
             'Check collision with objects
@@ -400,6 +461,8 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.sprite = objSprite
                     StopSound()
                     PlaySong("background-3", true)
+                else if objName = "oil"
+                    print "Ignore oil"
                 else
                     m.jumpman.alive = m.jumpman.immortal
                 end if
@@ -469,9 +532,21 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.sprite.SetRegion(hrgn)
                     m.jumpman.hammer.sprite.MoveTo(hx, hy + m.yOff)
                     objHit = m.jumpman.hammer.sprite.CheckCollision()
-                    if objHit <> invalid and objHit.GetData() = "barrel"
+                    if objHit <> invalid and Left(objHit.GetData(), 6) = "barrel"
                         print "hit barrel"
-                        'TODO: Kill barrels
+                        SmashBarrel(objHit)
+                        'points distribution: orange = 300, blue = 25% 300, 50% 500, 25% 800
+                        if Right(objHit.GetData(), 1) = "o"
+                            pts = 300
+                        else
+                            apt = [300, 500, 500, 800]
+                            pts = apt[Rnd(4) - 1]
+                        end if
+                        AddScore(pts)
+                        objHit.SetRegion(m.regions.objects.Lookup("points-" + itostr(pts)))
+                        objHit.SetMemberFlags(0)
+                        objHit.SetData("score")
+                        PlaySound("get-item")
                     end if
                 end if
             end if
@@ -481,6 +556,7 @@ End Sub
 
 Sub JumpmanDeath()
     Sleep(1000)
+    if m.board.name = "barrels" then DestroyObjects("barrel-")
     PlaySound("death")
     m.jumpman.state = m.jumpman.STATE_MOVE
     if Right(m.jumpman.charAction,4) = "Left"
@@ -504,9 +580,66 @@ Sub JumpmanDeath()
     Sleep(2000)
 End Sub
 
+Sub SmashBarrel(barrel as object)
+    PlaySound("smash")
+    barrel.SetZ(m.const.OBJECTS_Z + 1)
+    obj = {}
+    obj.frame = 0
+    while true
+        ticks = m.clock.TotalMilliseconds()
+        if ticks > m.speed
+            actionArray = m.anims.objects.sequence.Lookup("explode")
+            frame = actionArray[obj.frame]
+            frameName = "explode-" + itostr(frame.id)
+            if obj.cycles = invalid
+                obj.cycles = Int(frame.t / m.speed)
+            else
+                obj.cycles--
+            end if
+            if obj.cycles = 0
+                obj.frame++
+                obj.cycles = invalid
+            end if
+            barrel.SetRegion(m.regions.objects.Lookup(frameName))
+            m.compositor.DrawAll()
+            DrawScore()
+            m.mainScreen.SwapBuffers()
+            m.clock.Mark()
+            if obj.frame = actionArray.Count() then exit while
+        end if
+    end while
+End Sub
+
 Sub KongUpdate()
     m.kong.update()
-    if m.kong.sprite = invalid or m.kong.sprite.GetData() <> m.kong.charAction
+    region = m.regions.kong.Lookup(m.kong.frameName)
+    x = (m.kong.blockX * m.const.BLOCK_WIDTH) + m.kong.offsetX
+    y = ((m.kong.blockY * m.const.BLOCK_HEIGHT) + m.kong.offsetY) - region.GetHeight()
+    if Left(m.kong.charAction, 4) = "roll"
+        if m.kong.sprite = invalid
+            m.kong.sprite = m.compositor.NewSprite(x, y + m.yOff, region, m.const.CHARS_Z)
+            m.kong.sprite.SetData("kong")
+        else
+            m.kong.sprite.SetRegion(region)
+            m.kong.sprite.MoveTo(x, y + m.yOff)
+        end if
+        if m.kong.frameEvent = "barrel"
+            print "Roll a new barrel!"
+            m.kong.barrels++
+            if m.kong.barrels = m.const.OIL_BARREL_FREQ
+                m.kong.charAction = "rollOrangeBarrel"
+                m.kong.barrels = 0
+                barrel = CreateBarrel("b", m.const.BARREL_ROLL)
+            else
+                if m.kong.barrels = m.const.OIL_BARREL_FREQ - 1
+                    m.kong.charAction = "rollBlueBarrel"
+                end if
+                barrel = CreateBarrel("o", m.const.BARREL_ROLL)
+            end if
+            DrawObject(barrel)
+            m.objects.Push(barrel)
+        end if
+    else if m.kong.sprite = invalid or m.kong.sprite.GetData() <> m.kong.charAction
         actions = m.anims.kong.sequence.Lookup(m.kong.charAction)
         regions = []
         for each action in actions
@@ -514,15 +647,10 @@ Sub KongUpdate()
             if action.t <> invalid then frame.SetTime(action.t)
             regions.Push(frame)
         next
-        x = (m.kong.blockX * m.const.BLOCK_WIDTH) + m.kong.offsetX
-        y = ((m.kong.blockY * m.const.BLOCK_HEIGHT) + m.kong.offsetY) - frame.GetHeight()
         if m.kong.sprite <> invalid then m.kong.sprite.Remove()
         m.kong.sprite = m.compositor.NewAnimatedSprite(x, y + m.yOff, regions,  m.const.CHARS_Z)
         m.kong.sprite.SetData(m.kong.charAction)
     else
-        region = m.regions.kong.Lookup(m.kong.frameName)
-        x = (m.kong.blockX * m.const.BLOCK_WIDTH) + m.kong.offsetX
-        y = ((m.kong.blockY * m.const.BLOCK_HEIGHT) + m.kong.offsetY) - region.GetHeight()
         m.kong.sprite.MoveTo(x, y + m.yOff)
     end if
 End Sub
@@ -614,6 +742,15 @@ Sub UpdateBonusTimer()
     end if
 End Sub
 
+Sub UpdateDifficulty()
+    m.difficulty.timer += m.speed
+    if m.difficulty.timer > 33333
+        m.difficulty.timer = 0
+        if m.difficulty.level < 5 then m.difficulty.level++
+        print "changed difficulty to "; m.difficulty.level
+    end if
+End Sub
+
 Sub DestroyChars()
     if m.kong <> invalid
         if m.kong.sprite <> invalid
@@ -657,16 +794,22 @@ Sub DestroyStage()
         m.board.sprite.Remove()
         m.board.sprite = invalid
     end if
+    DestroyObjects()
+End Sub
+
+Sub DestroyObjects(filter = "" as string)
     if m.objects <> invalid
         for i = 0 to m.objects.Count()
             if m.objects[i] <> invalid
                 if m.objects[i].sprite <> invalid
-                    m.objects[i].sprite.Remove()
-                    m.objects[i].sprite = invalid
+                    if filter = "" or InStr(1, m.objects[i].sprite.GetData(), filter) > 0
+                        m.objects[i].sprite.Remove()
+                        m.objects[i].sprite = invalid
+                    end if
                 end if
             end if
         next
-        m.objects = invalid
+        if filter = "" then m.objects = invalid
     end if
 End Sub
 
