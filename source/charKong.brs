@@ -23,8 +23,8 @@ Function CreateKong()
     this.offsetX = 0
     this.offsetY = m.board.map[this.blockY][Int(this.blockX / 2)].o - 1
     if m.board.name = "barrels"
-        this.charAction = "rollOrangeBarrel"
-        this.barrels = 0
+        this.charAction = "rollWildBarrel"
+        this.barrels = -1
     else
         this.charAction = "shakeArms"
     end if

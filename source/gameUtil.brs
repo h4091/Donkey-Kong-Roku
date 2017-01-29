@@ -54,7 +54,7 @@ Function GetConstants() as object
     const.ACT_JUMP_RIGHT = 7
 
     const.BARREL_ROLL = 0
-    const.BARREL_FALL = 1
+    const.BARREL_WILD = 1
 
     const.OIL_BARREL_FREQ = 8
 

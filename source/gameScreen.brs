@@ -17,6 +17,7 @@ Sub PlayGame()
     'Initialize flags and aux variables
     m.debug = false
     m.gameOver = false
+    m.freeze = false
     'Game Loop
     m.clock.Mark()
     while true
@@ -70,6 +71,8 @@ Sub PlayGame()
                 DrawScore()
                 if m.debug then DrawGrid()
                 m.mainScreen.SwapBuffers()
+                if m.freeze then stop
+                m.freeze = false
                 m.clock.Mark()
                 UpdateBonusTimer()
                 UpdateDifficulty()
@@ -199,6 +202,7 @@ Sub DrawObject(obj as object)
 End Sub
 
 Sub ObjectsUpdate()
+    flames = invalid
     for i = 0 to m.objects.Count() - 1
         obj = m.objects[i]
         if obj.sprite <> invalid
@@ -301,7 +305,7 @@ Sub ObjectsUpdate()
             else if obj.sprite.GetData() = "flames"
                 flames = obj
             else if Left(obj.sprite.GetData(), 7) = "barrel-"
-                obj.update(m.jumpman.blockY)
+                obj.update(m.jumpman.blockX, m.jumpman.blockY)
                 if obj.sprite.GetData() <> obj.animation
                     obj.sprite.Remove()
                     obj.sprite = invalid
@@ -312,7 +316,11 @@ Sub ObjectsUpdate()
                     x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
                     y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
                     if obj.bounce <> invalid
-                        bounceArray = [0, 1, 2, 2, 2, 1, 0, 0, 0, 1, 1]
+                        if obj.action = m.const.BARREL_ROLL
+                            bounceArray = [0, 1, 2, 2, 2, 1, 0, 0, 0, 1, 1]
+                        else
+                            bounceArray = [0, 3, 6, 6, 6, 3, 0, 0, 0, 2, 1]
+                        end if
                         y -= bounceArray[obj.bounce]
                         obj.bounce++
                         if obj.bounce = bounceArray.Count() then obj.bounce = invalid
@@ -583,6 +591,7 @@ End Sub
 Sub SmashBarrel(barrel as object)
     PlaySound("smash")
     barrel.SetZ(m.const.OBJECTS_Z + 1)
+    barrel.MoveOffset(0, -8)
     obj = {}
     obj.frame = 0
     while true
@@ -623,21 +632,32 @@ Sub KongUpdate()
             m.kong.sprite.SetRegion(region)
             m.kong.sprite.MoveTo(x, y + m.yOff)
         end if
-        if m.kong.frameEvent = "barrel"
-            print "Roll a new barrel!"
-            m.kong.barrels++
-            if m.kong.barrels = m.const.OIL_BARREL_FREQ
-                m.kong.charAction = "rollOrangeBarrel"
-                m.kong.barrels = 0
-                barrel = CreateBarrel("b", m.const.BARREL_ROLL)
+        if m.kong.frame = 0 and m.kong.barrels >= 0
+            if m.kong.barrels = m.const.OIL_BARREL_FREQ - 1
+                m.kong.charAction = "rollBlueBarrel"
             else
-                if m.kong.barrels = m.const.OIL_BARREL_FREQ - 1
-                    m.kong.charAction = "rollBlueBarrel"
-                end if
-                barrel = CreateBarrel("o", m.const.BARREL_ROLL)
+                m.kong.charAction = "rollOrangeBarrel"
             end if
+        end if
+        if m.kong.frameEvent = "barrel"
+            'm.freeze = true
+            m.kong.barrels++
+            if m.kong.barrels = 0
+                color = "b"
+                action = m.const.BARREL_WILD
+            else
+                if m.kong.barrels = m.const.OIL_BARREL_FREQ
+                    color = "b"
+                else
+                    color = "o"
+                end if
+                action = m.const.BARREL_ROLL
+                if Rnd(16) = 16 then action = m.const.BARREL_WILD
+            end if
+            barrel = CreateBarrel(color, action)
             DrawObject(barrel)
             m.objects.Push(barrel)
+            if color = "b" then m.kong.barrels = 0
         end if
     else if m.kong.sprite = invalid or m.kong.sprite.GetData() <> m.kong.charAction
         actions = m.anims.kong.sequence.Lookup(m.kong.charAction)
