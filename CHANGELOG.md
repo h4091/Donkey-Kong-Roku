@@ -1,5 +1,16 @@
 #Donkey Kong for Roku - Changelog
 
+#####v0.9 - 29-Jan-2017 - Rolling and Wild Barrels, Get and Use Hammer, bug fixes
+* Add: Jumpman Animation: get and use the hammer #10
+* Add: Random Obstacle: Rolling barrel #4
+* Add: Random Obstacle: Wild barrel #5
+* Add: Jumpman animation: climb down #11
+* Fix: Can't jump over elevator platform close to the bottom engine #13
+* Fix: Jumpman is falling before or during remove a rivet when landing or walking on it #14
+* Fix: Jumpman is not falling when walking over hole (or right edge) in rivets board #15
+* Fix: Can't get one of the hammers on rivets board #21
+* Change: Updated project credit screen
+
 #####v0.8 - 04-Dec-2016 - Game Intro, Board and Level Complete scenes
 * Add: Game Introduction cut scene - #1
 * Add: End of level animation - #2
