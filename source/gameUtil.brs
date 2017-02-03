@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: January 2017
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -55,6 +55,9 @@ Function GetConstants() as object
 
     const.BARREL_ROLL = 0
     const.BARREL_WILD = 1
+
+    const.FIRE_BALL = 0
+    const.FIRE_FOX  = 1
 
     const.OIL_BARREL_FREQ = 8
 
@@ -434,7 +437,7 @@ Sub update_control_horizontal(id as integer)
         m.left = true
     else if id = m.code.BUTTON_DOWN_PRESSED
         m.right = true
-    else if id = m.code.BUTTON_INFO_PRESSED
+    else if id = m.code.BUTTON_SELECT_PRESSED
         m.jump = true
     else if id = m.code.BUTTON_A_PRESSED
         m.left = true
@@ -450,7 +453,7 @@ Sub update_control_horizontal(id as integer)
         m.left = false
     else if id = m.code.BUTTON_DOWN_RELEASED
         m.right = false
-    else if id = m.code.BUTTON_INFO_RELEASED
+    else if id = m.code.BUTTON_SELECT_RELEASED
         m.jump = false
     else if id = m.code.BUTTON_A_RELEASED
         m.left = false
