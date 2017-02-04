@@ -163,6 +163,10 @@ Function IsAnyLadder(block) as boolean
     return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BTTM_LADDER or block = m.const.MAP_BRKN_LADDER)
 End Function
 
+Function IsAnyTopLadder(block) as boolean
+    return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER or block = m.const.MAP_BRKN_LADDER)
+End Function
+
 Function IsTopLadder(block) as boolean
     return block <> invalid and (block = m.const.MAP_TOP_LADDER or block = m.const.MAP_FULL_LADDER)
 End Function
@@ -172,7 +176,7 @@ Function IsBottomLadder(block) as boolean
 End Function
 
 Function IsFloor(block) as boolean
-    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_RIVET)
+    return block <> invalid and (block = m.const.MAP_ONLY_FLOOR or block = m.const.MAP_CONV_BELT or block = m.const.MAP_RIVET or block = m.const.MAP_BTTM_LADDER)
 End Function
 
 Function IsFloorDown(block) as boolean
