@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: January 2017
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -115,9 +115,11 @@ Sub ResetGame()
     g.currentBonus = g.bonus.value
     g.board = g.maps.boards.Lookup("board-" + itostr(g.level[m.currentBoard-1]))
     g.board.redraw = true
+    g.board.timer = 0
     g.rivets = 0
     g.elevators = []
     g.belts = []
+    g.fireChars = 0
     'Create Objects
     if g.objects = invalid
         g.objects = []
@@ -216,7 +218,7 @@ End Sub
 
 Sub AddScore(points as integer)
     g = GetGlobalAA()
-    if g.gameScore < m.const.POINTS_LIFE and g.gameScore + points > m.const.POINTS_LIFE
+    if g.gameScore < m.const.POINTS_LIFE and g.gameScore + points >= m.const.POINTS_LIFE
         g.jumpman.lives++
     end if
     g.gameScore += points
@@ -283,3 +285,8 @@ Function GetTheme() as object
             }
     return theme
 End Function
+
+Sub Freeze(switch = true as boolean)
+    g = GetGlobalAA()
+    g.freeze = switch
+End Sub
