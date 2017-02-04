@@ -159,7 +159,8 @@ Sub move_jumpman(action)
             end if
         end if
     else if action = m.const.ACT_CLIMB_DOWN
-        if (IsLadder(curBlock) and m.offsetY < GetFloorOffset(m.blockX, m.blockY)) or IsLadder(downBlock)
+        curFloor = GetFloorOffset(m.blockX, m.blockY)
+        if IsLadder(downBlock) or (IsLadder(curBlock) and (m.offsetY < curFloor or curFloor = -1))
             if m.charAction <> "climbDown" and m.charAction <> "runUpDown"
                 m.charAction = "climbDown"
                 m.frame = 0
@@ -174,6 +175,10 @@ Sub move_jumpman(action)
                 m.blockY++
                 m.offsetY -= m.const.BLOCK_HEIGHT
             end if
+        else if m.charAction = "runUpDown"
+            m.state = m.STATE_MOVE
+            m.charAction = "stand"
+            m.frame = 0
         end if
     else if action = m.const.ACT_RUN_LEFT
         if m.offsetY = GetFloorOffset(m.blockX, m.blockY)
@@ -405,7 +410,7 @@ Sub move_jumpman(action)
         end if
     end if
     if action <> m.const.ACT_NONE
-        print "position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY; " - Floor=";GetFloorOffset(m.blockX, m.blockY)
+        print "charAction: "; m.charAction; " - position: "; m.blockX; ","; m.blockY; " - offsetX="; m.offsetX; " - offsetY="; m.offsetY; " - Floor=";GetFloorOffset(m.blockX, m.blockY)
     else if m.state = m.STATE_JUMP
         print "jump:"; m.frame
     end if
