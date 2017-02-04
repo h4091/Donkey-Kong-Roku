@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: January 2017
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -60,6 +60,7 @@ Sub PlayGame()
                 if m.board.redraw then DrawBoard()
                 KongUpdate()
                 LadyUpdate()
+                MobsLauncher()
                 ObjectsUpdate()
                 if m.startup then BoardStartup()
                 JumpmanUpdate()
@@ -93,7 +94,11 @@ Sub PlayGame()
                         AddScore(m.currentBonus)
                         NextBoard()
                     else if CheckBoardSuccess()
-                        if m.board.name = "barrels" then DestroyObjects("barrel-")
+                        if m.board.name = "barrels"
+                            DestroyObjects(["barrel-", "fire"])
+                        else
+                            DestroyObjects(["fire"])
+                        end if
                         BoardCompleteScene()
                         AddScore(m.currentBonus)
                         NextBoard()
@@ -197,6 +202,72 @@ Sub DrawObject(obj as object)
                 obj.sprite.SetMemberFlags(0)
             end if
             obj.sprite.SetDrawableFlag(obj.visible)
+        end if
+    end if
+End Sub
+
+Sub MobsLauncher()
+    if m.board.name = "rivets"
+        if m.fireChars < 5
+            m.board.timer += m.speed
+            if m.currentLevel <= 2
+                launchTime = 4000
+            else if m.currentLevel <= 4
+                launchTime = 2000
+            else
+                launchTime = 1000
+            end if
+            if m.board.timer > launchTime
+                if m.jumpman.blockX < 14
+                    launcher = m.board.launchers.right
+                    direction = m.const.FACE_LEFT
+                else
+                    launcher = m.board.launchers.left
+                    direction = m.const.FACE_RIGHT
+                end if
+                max = launcher.Count()
+                idx = Rnd(max)-1
+                spot = launcher[idx]
+                floor = GetFloorOffset(spot.blockX, spot.blockY)
+                fireChar = CreateFire(m.const.FIRE_FOX, spot.blockX, spot.blockY, 0, floor, direction)
+                DrawObject(fireChar)
+                m.objects.Push(fireChar)
+                m.board.timer = 0
+                m.fireChars++
+            end if
+        end if
+    else if m.board.name = "conveyors"
+        if m.fireChars < m.difficulty.level
+            m.board.timer += m.speed
+            launchTime = 1000
+            if m.board.timer > launchTime
+                if m.jumpman.blockX < 14
+                    direction = m.const.FACE_LEFT
+                else
+                    direction = m.const.FACE_RIGHT
+                end if
+                spot = m.board.launchers.center
+                fireChar = CreateFire(m.const.FIRE_BALL, spot.blockX, spot.blockY, 4, 0, direction, true)
+                DrawObject(fireChar)
+                m.objects.Push(fireChar)
+                m.board.timer = 0
+                m.fireChars++
+            end if
+        end if
+    else if m.board.name = "elevators"
+        if m.fireChars < 2
+            direction = m.const.FACE_LEFT
+            spot = m.board.launchers.left
+            floor = GetFloorOffset(spot.blockX, spot.blockY)
+            fireLeft = CreateFire(m.const.FIRE_BALL, spot.blockX, spot.blockY, 0, floor, direction)
+            DrawObject(fireLeft)
+            m.objects.Push(fireLeft)
+            spot = m.board.launchers.right
+            floor = GetFloorOffset(spot.blockX, spot.blockY)
+            fireRight = CreateFire(m.const.FIRE_BALL, spot.blockX, spot.blockY, 0, floor, direction)
+            DrawObject(fireRight)
+            m.objects.Push(fireRight)
+            m.fireChars += 2
         end if
     end if
 End Sub
@@ -334,12 +405,50 @@ Sub ObjectsUpdate()
                             flames.sprite.SetDrawableFlag(true)
                             flames.visible = true
                         end if
-                        'TODO: If blue barrel spawn a fireball (max 5)
+                        if obj.animation.Right(1) = "b" and m.fireChars < 5
+                            fireChar = CreateFire(m.const.FIRE_BALL, obj.blockX, obj.blockY, obj.offsetX, obj.offsetY, m.const.FACE_RIGHT, true)
+                            DrawObject(fireChar)
+                            m.objects.Push(fireChar)
+                            m.fireChars++
+                        end if
                     end if
                 else
                     obj.sprite.Remove()
                     obj.sprite = invalid
                     print "destroyed barrel sprite "; m.objects.Count()
+                end if
+            else if Left(obj.sprite.GetData(), 4) = "fire"
+                obj.update(m.jumpman.blockX, m.jumpman.blockY)
+                redraw = (obj.sprite.GetData() <> obj.animation)
+                if m.jumpman.hammer <> invalid and m.jumpman.hammer.countdown > 0
+                    if Right(obj.name, 3) = "red"
+                        obj.name = obj.name.Replace("red", "blue")
+                        redraw = true
+                    end if
+                else if Right(obj.name, 4) = "blue"
+                    obj.name = obj.name.Replace("blue", "red")
+                    redraw = true
+                end if
+                if redraw
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    DrawObject(obj)
+                end if
+                if Abs(obj.offsetX) <= m.const.BLOCK_WIDTH * 2
+                    region = obj.sprite.GetRegion()
+                    x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+                    y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+                    if obj.move < obj.MOVE_LSPAWN
+                        bounceArray = [0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 4, 2, 2, 0]
+                        y -= bounceArray[obj.bounce]
+                        obj.bounce++
+                        if obj.bounce = bounceArray.Count() then obj.bounce = 0
+                    end if
+                    obj.sprite.MoveTo(x, y + m.yOff)
+                else
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    print "destroyed fire sprite "; m.objects.Count()
                 end if
             end if
         end if
@@ -409,7 +518,7 @@ Sub JumpmanUpdate()
                                 if m.rivets > 0 then m.rivets--
                                 exit for
                             end if
-                        else if Right(obj.name, 7) = "rolling"
+                        else if Right(obj.name, 7) = "rolling" or Left(obj.name, 4) = "fire"
                             if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
                                 if pts = 0
                                     pts = 100
@@ -540,15 +649,22 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.sprite.SetRegion(hrgn)
                     m.jumpman.hammer.sprite.MoveTo(hx, hy + m.yOff)
                     objHit = m.jumpman.hammer.sprite.CheckCollision()
-                    if objHit <> invalid and Left(objHit.GetData(), 6) = "barrel"
-                        print "hit barrel"
-                        SmashBarrel(objHit)
-                        'points distribution: orange = 300, blue = 25% 300, 50% 500, 25% 800
+                    if objHit <> invalid and (Left(objHit.GetData(), 6) = "barrel" or Left(objHit.GetData(), 4) = "fire")
+                        print "hit barrel or fire char"
+                        SmashMob(objHit)
+                        'points distribution:
+                        'orange = 300
+                        'blue = 25% 300, 50% 500, 25% 800
+                        'fire = 50% 300, 33% 500, 17% 800
                         if Right(objHit.GetData(), 1) = "o"
                             pts = 300
-                        else
+                        else if Right(objHit.GetData(), 1) = "b"
                             apt = [300, 500, 500, 800]
                             pts = apt[Rnd(4) - 1]
+                        else
+                            apt = [300, 300, 300, 500, 500, 800]
+                            pts = apt[Rnd(6) - 1]
+                            m.fireChars--
                         end if
                         AddScore(pts)
                         objHit.SetRegion(m.regions.objects.Lookup("points-" + itostr(pts)))
@@ -564,7 +680,11 @@ End Sub
 
 Sub JumpmanDeath()
     Sleep(1000)
-    if m.board.name = "barrels" then DestroyObjects("barrel-")
+    if m.board.name = "barrels"
+        DestroyObjects(["barrel-", "fire"])
+    else
+        DestroyObjects(["fire"])
+    end if
     PlaySound("death")
     m.jumpman.state = m.jumpman.STATE_MOVE
     if Right(m.jumpman.charAction,4) = "Left"
@@ -588,10 +708,10 @@ Sub JumpmanDeath()
     Sleep(2000)
 End Sub
 
-Sub SmashBarrel(barrel as object)
+Sub SmashMob(sprite as object)
     PlaySound("smash")
-    barrel.SetZ(m.const.OBJECTS_Z + 1)
-    barrel.MoveOffset(0, -8)
+    sprite.SetZ(m.const.OBJECTS_Z + 1)
+    if Left(sprite.GetData(), 6) = "barrel" then sprite.MoveOffset(0, -8)
     obj = {}
     obj.frame = 0
     while true
@@ -609,7 +729,7 @@ Sub SmashBarrel(barrel as object)
                 obj.frame++
                 obj.cycles = invalid
             end if
-            barrel.SetRegion(m.regions.objects.Lookup(frameName))
+            sprite.SetRegion(m.regions.objects.Lookup(frameName))
             m.compositor.DrawAll()
             DrawScore()
             m.mainScreen.SwapBuffers()
@@ -640,13 +760,12 @@ Sub KongUpdate()
             end if
         end if
         if m.kong.frameEvent = "barrel"
-            'm.freeze = true
             m.kong.barrels++
             if m.kong.barrels = 0
                 color = "b"
                 action = m.const.BARREL_WILD
             else
-                if m.kong.barrels = m.const.OIL_BARREL_FREQ
+                if m.kong.barrels >= m.const.OIL_BARREL_FREQ and m.fireChars < 5
                     color = "b"
                 else
                     color = "o"
@@ -817,19 +936,30 @@ Sub DestroyStage()
     DestroyObjects()
 End Sub
 
-Sub DestroyObjects(filter = "" as string)
+Sub DestroyObjects(filter = [] as object)
     if m.objects <> invalid
         for i = 0 to m.objects.Count()
             if m.objects[i] <> invalid
                 if m.objects[i].sprite <> invalid
-                    if filter = "" or InStr(1, m.objects[i].sprite.GetData(), filter) > 0
+                    remove = false
+                    if filter.Count() = 0
+                        remove = true
+                    else
+                        for each term in filter
+                            if InStr(1, m.objects[i].sprite.GetData(), term) > 0
+                                remove = true
+                                exit for
+                            end if
+                        next
+                    end if
+                    if remove
                         m.objects[i].sprite.Remove()
                         m.objects[i].sprite = invalid
                     end if
                 end if
             end if
         next
-        if filter = "" then m.objects = invalid
+        if filter.Count() = 0 then m.objects = invalid
     end if
 End Sub
 

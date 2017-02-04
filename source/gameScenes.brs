@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: December 2016
-' **  Updated: December 2016
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -105,6 +105,7 @@ End Sub
 Sub BoardCompleteScene()
     print "board complete scene"
     StopAudio()
+    StopSound()
     x = m.lady.sprite.GetX()
     if m.lady.face = m.const.FACE_LEFT
         m.lady.frameName = "pauline-8"
@@ -191,6 +192,7 @@ End Sub
 Sub FinishLevelScene()
     print "finish level scene"
     StopAudio()
+    StopSound()
     DestroyStage()
     m.speed = 50
     if IsOdd(m.currentLevel)
