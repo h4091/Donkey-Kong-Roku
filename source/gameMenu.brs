@@ -111,7 +111,7 @@ Function GetMenuItems(menu as object)
                 ShortDescriptionLine2: "Use Left and Right to set the control mode"
                 })
     listItems.Push({
-                Title: "Boards Order: " + menu.levelsOrder[m.settings.controlMode]
+                Title: "Boards Order: " + menu.levelsOrder[m.settings.levelsOrder]
                 HDSmallIconUrl: "pkg:/images/icon_arrows.png"
                 SDSmallIconUrl: "pkg:/images/icon_arrows.png"
                 HDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
