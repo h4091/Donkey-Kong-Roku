@@ -134,7 +134,7 @@ Function GetMenuItems(menu as object)
                 SDSmallIconUrl: "pkg:/images/icon_info.png"
                 HDPosterUrl: "pkg:/images/menu_credits.png"
                 SDPosterUrl: "pkg:/images/menu_credits.png"
-                ShortDescriptionLine1: "Alpha v" + m.manifest.major_version + "." + m.manifest.minor_version + "." + m.manifest.build_version
+                ShortDescriptionLine1: "Beta v" + m.manifest.major_version + "." + m.manifest.minor_version + "." + m.manifest.build_version
                 ShortDescriptionLine2: "Press OK to read game credits"
                 })
     return listItems

@@ -1,5 +1,18 @@
 #Donkey Kong for Roku - Changelog
 
+#####v0.10 - 04-Fev-2017 - Fire Ball, Fire Fox, Cement Tray, Set Boards Order
+* Add: Random Obstacle: Fireball AI (barrels, elevators, conveyors) #6
+* Add: Random Obstacle: Firefox AI (rivets) #7
+* Add: Random Obstacle: Cement tray #8
+* Add: Settings: Select level board order (USA or Japan) #29
+* Change: Updated game credits and start screens
+* Fix: OK button is not working for standing jump on horizontal control mode #25
+* Fix: Bonus life is not being added if the score is exactly 7000 #26
+* Fix: Jumpman cannot climb down some ladders on conveyors board #18
+* Fix: At the end of the climb up if go down and up again repeat the animation #16
+* Fix: Fireballs are not climbing all way down on long ladders (conveyors board) #28
+* Fix: Jumpman is moved out of the screen on conveyors board second floor #27
+
 #####v0.9 - 29-Jan-2017 - Rolling and Wild Barrels, Get and Use Hammer, bug fixes
 * Add: Jumpman Animation: get and use the hammer #10
 * Add: Random Obstacle: Rolling barrel #4
