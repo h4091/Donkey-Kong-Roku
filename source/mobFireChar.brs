@@ -119,7 +119,9 @@ Sub update_fire(jumpmanX as integer, jumpmanY as integer)
                 m.blockY++
                 m.offsetY -= m.const.BLOCK_HEIGHT
             end if
-            if not IsAnyLadder(downBlock) and m.offsetY > GetFloorOffset(m.blockX, m.blockY)
+            floor = GetFloorOffset(m.blockX, m.blockY)
+            if not IsAnyLadder(downBlock) and floor >= 0 and m.offsetY > floor
+                if m.blockY = 10 then stop
                 m.offsetY = GetFloorOffset(m.blockX, m.blockY)
                 m.changePath()
             end if
