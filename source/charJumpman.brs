@@ -400,9 +400,9 @@ Sub move_jumpman(action)
                     m.blockX++
                     m.offsetX -= m.const.BLOCK_WIDTH
                 end if
-            else if direction = "L"
+            else if direction = "L" and m.blockX > 0
                 m.offsetX -= 2
-                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                if m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
                     m.blockX--
                     m.offsetX += m.const.BLOCK_WIDTH
                 end if
