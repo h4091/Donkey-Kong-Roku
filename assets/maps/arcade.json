@@ -1,11 +1,20 @@
 {
-"levels": {
+"levels": [
+    {
     "level-1": [1,4],
     "level-2": [1,3,4],
     "level-3": [1,2,3,4],
     "level-4": [1,2,1,3,4],
     "level-5": [1,2,1,3,1,4]
-},
+    },
+    {
+    "level-1": [1,2,3,4],
+    "level-2": [1,2,3,4],
+    "level-3": [1,2,3,4],
+    "level-4": [1,2,3,4],
+    "level-5": [1,2,3,4]
+    }
+],
 "bonus": {
     "level-1": {"value": 5000, "time": 2000},
     "level-2": {"value": 6000, "time": 1667},
@@ -64,7 +73,7 @@
             [{"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":5}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":5,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":5}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":0,"r":0}, {"o": 0,"l":5,"r":0}, {"o": 0,"l":0,"r":0}],
             [{"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":2}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":1,"r":1}, {"o":17,"l":2,"r":1}, {"o":17,"l":1,"r":1}]
         ],
-        "launchers": {"left": {"blockX": 0, "blockY": 11}, "right":{"blockX": 26, "blockY": 11}, "center": {"blockX": 13, "blockY": 6}},
+        "launchers": {"center": {"blockX": 13, "blockY": 6}},
         "kong": {"blockX": 3, "blockY": 3, "belt": 0, "switchBelt": 3},
         "lady": {"blockX": 11, "blockY": 1, "face": 2, "help": "white"},
         "jumpman": {"blockX": 5, "blockY": 13},
@@ -75,8 +84,8 @@
                     {"name": "oil", "blockX": 13, "blockY": 7, "offsetY": 0, "collide": false},
                     {"name": "ladder", "blockX": 1.9, "blockY": 5, "offsetY": 2, "z": 20, "collide": false},
                     {"name": "ladder", "blockX":24.9, "blockY": 5, "offsetY": 2, "z": 20, "collide": false},
-                    {"name": "conveyor", "blockX": 0, "blockY": 3, "offsetY": 35, "collide": false, "belt": 0, "side": "L", "direction": "R"},
-                    {"name": "conveyor", "blockX":26.5, "blockY": 3, "offsetY": 35, "collide": false, "belt": 0, "side": "R"},
+                    {"name": "conveyor", "blockX": 0, "blockY": 3, "offsetY": 35, "collide": false, "belt": 0, "side": "L", "direction": "R", "cement": false},
+                    {"name": "conveyor", "blockX":26.5, "blockY": 3, "offsetY": 35, "collide": false, "belt": 0, "side": "R", "cement": false},
                     {"name": "conveyor", "blockX":11.8, "blockY": 6, "offsetY":19, "collide": false, "belt": 1, "side": "R", "direction": "R"},
                     {"name": "conveyor", "blockX":14.9, "blockY": 6, "offsetY":19, "collide": false, "belt": 2, "side": "L", "direction": "L"},
                     {"name": "conveyor", "blockX": 0, "blockY":11, "offsetY": 19, "collide": false, "belt": 3, "side": "L", "direction": "L"},

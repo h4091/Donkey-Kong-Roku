@@ -94,11 +94,7 @@ Sub PlayGame()
                         AddScore(m.currentBonus)
                         NextBoard()
                     else if CheckBoardSuccess()
-                        if m.board.name = "barrels"
-                            DestroyObjects(["barrel-", "fire"])
-                        else
-                            DestroyObjects(["fire"])
-                        end if
+                        DestroyMobs()
                         BoardCompleteScene()
                         AddScore(m.currentBonus)
                         NextBoard()
@@ -237,6 +233,7 @@ Sub MobsLauncher()
             end if
         end if
     else if m.board.name = "conveyors"
+        'Fire Balls
         if m.fireChars < m.difficulty.level
             m.board.timer += m.speed
             launchTime = 1000
@@ -254,6 +251,20 @@ Sub MobsLauncher()
                 m.fireChars++
             end if
         end if
+        'Cement trays
+        for each belt in m.belts
+            if belt.cement
+                belt.timer += m.speed
+                if belt.timer > belt.launch
+                    if belt.direction = "L" then x = belt.xr else x = belt.xl
+                    cement = CreateCement(x, belt.y)
+                    DrawObject(cement)
+                    m.objects.Push(cement)
+                    belt.timer = 0
+                    belt.launch = Rnd(8) * 1000
+                end if
+            end if
+        next
     else if m.board.name = "elevators"
         if m.fireChars < 2
             direction = m.const.FACE_LEFT
@@ -449,6 +460,28 @@ Sub ObjectsUpdate()
                     obj.sprite.Remove()
                     obj.sprite = invalid
                     print "destroyed fire sprite "; m.objects.Count()
+                end if
+            else if obj.sprite.GetData() = "cement"
+                obj.update()
+                if Abs(obj.offsetX) <= m.const.BLOCK_WIDTH * 2
+                    region = obj.sprite.GetRegion()
+                    x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+                    y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+                    obj.sprite.MoveTo(x, y + m.yOff)
+                    objHits = obj.sprite.CheckMultipleCollisions()
+                    if objHits <> invalid
+                        for each hit in objHits
+                            if hit.GetData() = "flames" and hit.GetX() = obj.sprite.GetX()
+                                obj.sprite.Remove()
+                                obj.sprite = invalid
+                                print "destroyed cement sprite at flames "; m.objects.Count()
+                            end if
+                        next
+                    end if
+                else
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    print "destroyed cement sprite off screen "; m.objects.Count()
                 end if
             end if
         end if
@@ -649,7 +682,7 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.sprite.SetRegion(hrgn)
                     m.jumpman.hammer.sprite.MoveTo(hx, hy + m.yOff)
                     objHit = m.jumpman.hammer.sprite.CheckCollision()
-                    if objHit <> invalid and (Left(objHit.GetData(), 6) = "barrel" or Left(objHit.GetData(), 4) = "fire")
+                    if objHit <> invalid and CanSmash(objHit)
                         print "hit barrel or fire char"
                         SmashMob(objHit)
                         'points distribution:
@@ -658,7 +691,7 @@ Sub JumpmanUpdate()
                         'fire = 50% 300, 33% 500, 17% 800
                         if Right(objHit.GetData(), 1) = "o"
                             pts = 300
-                        else if Right(objHit.GetData(), 1) = "b"
+                        else if Right(objHit.GetData(), 1) = "b" or objHit.GetData() = "cement"
                             apt = [300, 500, 500, 800]
                             pts = apt[Rnd(4) - 1]
                         else
@@ -680,11 +713,7 @@ End Sub
 
 Sub JumpmanDeath()
     Sleep(1000)
-    if m.board.name = "barrels"
-        DestroyObjects(["barrel-", "fire"])
-    else
-        DestroyObjects(["fire"])
-    end if
+    DestroyMobs()
     PlaySound("death")
     m.jumpman.state = m.jumpman.STATE_MOVE
     if Right(m.jumpman.charAction,4) = "Left"
@@ -711,7 +740,8 @@ End Sub
 Sub SmashMob(sprite as object)
     PlaySound("smash")
     sprite.SetZ(m.const.OBJECTS_Z + 1)
-    if Left(sprite.GetData(), 6) = "barrel" then sprite.MoveOffset(0, -8)
+    region = sprite.GetRegion()
+    if region.GetHeight() < m.const.BLOCK_HEIGHT then sprite.MoveOffset(0, -8)
     obj = {}
     obj.frame = 0
     while true
@@ -934,6 +964,16 @@ Sub DestroyStage()
         m.board.sprite = invalid
     end if
     DestroyObjects()
+End Sub
+
+Sub DestroyMobs()
+    if m.board.name = "barrels"
+        DestroyObjects(["barrel-", "fire", "score"])
+    else if  m.board.name = "conveyors"
+        DestroyObjects(["cement", "fire", "score"])
+    else
+        DestroyObjects(["fire", "score"])
+    end if
 End Sub
 
 Sub DestroyObjects(filter = [] as object)

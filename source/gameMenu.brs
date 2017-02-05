@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: November 2016
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -19,6 +19,9 @@ Function StartMenu(focus as integer) as integer
     this.controlModes = ["Vertical Mode", "Horizontal Mode"]
     this.controlHelp  = ["", ""]
     this.controlImage = ["pkg:/images/control_vertical.png", "pkg:/images/control_horizontal.png"]
+    this.levelsOrder = ["USA Arcade", "Japan Arcade"]
+    this.levelsHelp  = ["Boards order change per level", "Same boards order all levels"]
+    this.levelsImage = ["pkg:/images/menu_levels_usa.png", "pkg:/images/menu_levels_japan.png"]
     listItems = GetMenuItems(this)
     this.screen.SetContent(listItems)
     this.screen.SetFocusedListItem(focus)
@@ -48,7 +51,7 @@ Function StartMenu(focus as integer) as integer
                     this.screen.SetFocusedListItem(m.const.MENU_START)
                 else if remoteKey = m.code.BUTTON_FAST_FORWARD_PRESSED
                     this.screen.SetFocusedListItem(m.const.MENU_CREDITS)
-                    else if listIndex = m.const.MENU_CONTROL
+                else if listIndex = m.const.MENU_CONTROL
                     if remoteKey = m.code.BUTTON_LEFT_PRESSED
                         m.settings.controlMode--
                         if m.settings.controlMode < 0 then m.settings.controlMode = this.controlModes.Count() - 1
@@ -61,6 +64,22 @@ Function StartMenu(focus as integer) as integer
                         listItems[listIndex].ShortDescriptionLine1 = this.controlHelp[m.settings.controlMode]
                         listItems[listIndex].HDPosterUrl = this.controlImage[m.settings.controlMode]
                         listItems[listIndex].SDPosterUrl = this.controlImage[m.settings.controlMode]
+                        this.screen.SetItem(listIndex, listItems[listIndex])
+                        m.sounds.navSingle.Trigger(50)
+                    end if
+                else if listIndex = m.const.MENU_LEVELS
+                    if remoteKey = m.code.BUTTON_LEFT_PRESSED
+                        m.settings.levelsOrder--
+                        if m.settings.levelsOrder < 0 then m.settings.levelsOrder = this.levelsOrder.Count() - 1
+                    else if remoteKey = m.code.BUTTON_RIGHT_PRESSED
+                        m.settings.levelsOrder++
+                        if m.settings.levelsOrder = this.levelsOrder.Count() then m.settings.levelsOrder = 0
+                    end if
+                    if update
+                        listItems[listIndex].Title = "Boards Order: " + this.levelsOrder[m.settings.levelsOrder]
+                        listItems[listIndex].ShortDescriptionLine1 = this.levelsHelp[m.settings.levelsOrder]
+                        listItems[listIndex].HDPosterUrl = this.levelsImage[m.settings.levelsOrder]
+                        listItems[listIndex].SDPosterUrl = this.levelsImage[m.settings.levelsOrder]
                         this.screen.SetItem(listIndex, listItems[listIndex])
                         m.sounds.navSingle.Trigger(50)
                     end if
@@ -90,6 +109,15 @@ Function GetMenuItems(menu as object)
                 SDPosterUrl: menu.controlImage[m.settings.controlMode]
                 ShortDescriptionLine1: menu.controlHelp[m.settings.controlMode]
                 ShortDescriptionLine2: "Use Left and Right to set the control mode"
+                })
+    listItems.Push({
+                Title: "Boards Order: " + menu.levelsOrder[m.settings.controlMode]
+                HDSmallIconUrl: "pkg:/images/icon_arrows.png"
+                SDSmallIconUrl: "pkg:/images/icon_arrows.png"
+                HDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
+                SDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
+                ShortDescriptionLine1: menu.levelsHelp[m.settings.levelsOrder]
+                ShortDescriptionLine2: "Use Left and Right to set the levels order"
                 })
     listItems.Push({
                 Title: "High Scores"

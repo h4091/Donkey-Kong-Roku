@@ -30,8 +30,12 @@ Function GetConstants() as object
 
     const.MENU_START    = 0
     const.MENU_CONTROL  = 1
-    const.MENU_HISCORES = 2
-    const.MENU_CREDITS  = 3
+    const.MENU_LEVELS   = 2
+    const.MENU_HISCORES = 3
+    const.MENU_CREDITS  = 4
+
+    const.LEVELS_USA = 0
+    const.LEVELS_JPN = 1
 
     const.MAP_EMPTY       = 0
     const.MAP_ONLY_FLOOR  = 1
@@ -189,6 +193,10 @@ End Function
 
 Function IsElevator(block) as boolean
     return block <> invalid and (block = m.const.MAP_ELEVATOR)
+End Function
+
+Function CanSmash(obj as object) as boolean
+    return (Left(obj.GetData(), 6) = "barrel" or Left(obj.GetData(), 4) = "fire" or obj.GetData() = "cement")
 End Function
 
 '------- Numeric and String Functions -------
@@ -361,6 +369,7 @@ Function LoadSettings() as dynamic
         end if
     end if
     if settings = invalid then settings = {}
+    if settings.levelsOrder = invalid then settings.levelsOrder = m.const.LEVELS_USA
     if settings.controlMode = invalid then settings.controlMode = m.const.CONTROL_VERTICAL
     if settings.highScores = invalid
         settings.highScores = [ {score: 7650, name: ""},

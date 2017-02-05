@@ -101,8 +101,9 @@ Sub ResetGame()
         path = "pkg:/assets/maps/"
         g.maps = ParseJson(ReadAsciiFile(path + "arcade.json"))
     end if
-    if m.currentLevel <= g.maps.levels.Count()
-        g.level = g.maps.levels.Lookup("level-" + itostr(m.currentLevel))
+    order = g.settings.levelsOrder
+    if m.currentLevel <= g.maps.levels[order].Count()
+        g.level = g.maps.levels[order].Lookup("level-" + itostr(m.currentLevel))
     end if
     if m.currentLevel <= g.maps.bonus.Count()
         g.bonus = g.maps.bonus.Lookup("level-" + itostr(m.currentLevel))
@@ -168,14 +169,20 @@ Sub ResetGame()
                 g.board.map[obj.blockY][Int(obj.blockX / 2)].rivet = true
             else if obj.name = "conveyor"
                 if g.belts.Count() < obj.belt + 1
-                    g.belts.Push({xl: 0, xr: 27, y: obj.blockY, conveyors: [], direction: obj.direction})
+                    g.belts.Push({xl: 0, xr: 27, y: obj.blockY, conveyors: []})
+                    g.belts[obj.belt].direction = obj.direction
+                    g.belts[obj.belt].cement = (obj.cement = invalid or obj.cement)
+                    if g.belts[obj.belt].cement
+                        g.belts[obj.belt].timer = 0
+                        g.belts[obj.belt].launch = Rnd(8) * 1000 'cement launch time
+                    end if
                 end if
                 g.objects[i].belt = obj.belt
                 g.belts[obj.belt].conveyors.Push(i)
                 if obj.side = "L" and obj.blockX > g.belts[obj.belt].xl
-                    g.belts[obj.belt].xl = obj.blockX
+                    g.belts[obj.belt].xl = CInt(obj.blockX)
                 else if obj.side = "R" and obj.blockX < g.belts[obj.belt].xr
-                    g.belts[obj.belt].xr = obj.blockX
+                    g.belts[obj.belt].xr = CInt(obj.blockX)
                 end if
             else if obj.name = "elevator-1"
                 g.objects[i].z = g.const.OBJECTS_Z + 1

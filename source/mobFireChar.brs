@@ -21,7 +21,6 @@ Function CreateFire(charType as integer, x as integer, y as integer, ox as integ
     this.MOVE_LSPAWN = 5
     this.MOVE_RSPAWN = 6
     'Properties
-    this.board = m.board
     this.type = charType
     if charType = m.const.FIRE_BALL
         print "Launch a new fire ball!"
