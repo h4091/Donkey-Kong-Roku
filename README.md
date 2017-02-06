@@ -9,7 +9,9 @@ If you have a Roku or Roku TV you can install the preview channel using this lin
 
 The current state of Beta version 0.10 has most of the mechanics of the game ready, the levels and boards sequence is followed as the original Arcade (with two options USA and Japan), including the cut scenes. The Jumpman (original name of Mario) can walk, jump, get objects, use the hammer and die. Kong animations are in place and the normal and wild barrels, fire balls and firefoxes AI was implemented. The elevators (with bugs) and conveyors (with cement trays) boards are also done. Bonus countdown and high score records are fully working. You can check the [Changelog](https://github.com/lvcabral/Donkey-Kong-Roku/blob/master/CHANGELOG.md) to know more details. The missing features (and known bugs) are registered at the repository Issues backlog,
 
-To see the game working you can watch this [YouTube video](https://www.youtube.com/watch?v=SgieXHGXH9A) with the functionality up to the version Alpha 0.8.
+To see the game working you can watch this [YouTube video](https://www.youtube.com/watch?v=NA59qZk7fQU) with the current functionality.
+
+[![Click to watch the video](https://img.youtube.com/vi/NA59qZk7fQU/0.jpg)](https://www.youtube.com/watch?v=NA59qZk7fQU)
 
 Disclaimer: This source code shall not be used commercially or sold in any form, the objective of this project is educational.
 
