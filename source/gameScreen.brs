@@ -66,7 +66,6 @@ Sub PlayGame()
                 JumpmanUpdate()
                 SoundUpdate()
                 'Paint Screen
-                m.mainScreen.Clear(0)
                 m.compositor.AnimationTick(ticks)
                 m.compositor.DrawAll()
                 DrawScore()
@@ -329,7 +328,7 @@ Sub ObjectsUpdate()
                     topY = ((elevator.t * m.const.BLOCK_HEIGHT) + elevator.ot)
                     if curY > topY
                         platform.o -= 2
-                        if platform.o < 1
+                        if platform.o < -4
                             platform.y--
                             platform.o += m.const.BLOCK_HEIGHT
                         end if
@@ -346,28 +345,34 @@ Sub ObjectsUpdate()
                         platform.o = elevator.ob
                         curY = ((platform.y * m.const.BLOCK_HEIGHT) + platform.o) - m.const.BLOCK_HEIGHT
                         obj.sprite.MoveTo(obj.sprite.GetX(), curY + m.yOff)
+                        mapY = platform.y
+                        mapO = platform.o - 16
+                        SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     end if
                 else
                     botY = ((elevator.b * m.const.BLOCK_HEIGHT) + elevator.ob)
                     if curY < botY
                         platform.o += 2
-                        if platform.o > m.const.BLOCK_HEIGHT
+                        if platform.o > m.const.BLOCK_HEIGHT + 8 and platform.y < 13
                             platform.y++
                             platform.o -= m.const.BLOCK_HEIGHT
                         end if
                         obj.sprite.MoveOffset(0, 2)
                         mapY = platform.y
                         mapO = platform.o - 16
-                        ' if mapO > m.const.BLOCK_HEIGHT and mapY < 13
-                        '     mapY++
-                        '     mapO -= m.const.BLOCK_HEIGHT
-                        ' end if
+                        if mapO > m.const.BLOCK_HEIGHT and mapY < 13
+                            mapY++
+                            mapO -= m.const.BLOCK_HEIGHT
+                        end if
                         SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     else
                         platform.y = elevator.t
                         platform.o = elevator.ot
                         curY = ((platform.y * m.const.BLOCK_HEIGHT) + platform.o) - m.const.BLOCK_HEIGHT
                         obj.sprite.MoveTo(obj.sprite.GetX(), curY + m.yOff)
+                        mapY = platform.y
+                        mapO = platform.o - 16
+                        SetBlockProperties(obj.blockX, mapY, mapO, obj.platform)
                     end if
                 end if
                 if m.jumpman.platform <> invalid and Int(m.jumpman.blockX / 2) = Int(obj.blockX / 2) and m.jumpman.platform = obj.platform

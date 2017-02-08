@@ -336,15 +336,17 @@ Sub move_jumpman(action)
             if m.jump <> m.const.ACT_JUMP_UP
                 if m.jump = m.const.ACT_JUMP_LEFT
                     m.offsetX -= m.frameOffsetX()
+                    if m.offsetX <= -(m.const.BLOCK_WIDTH / 4)
+                        m.blockX--
+                        m.offsetX += m.const.BLOCK_WIDTH
+                    end if
                 else
                     m.offsetX += m.frameOffsetX()
-                end if
-                if m.offsetX <= -1
-                    m.blockX--
-                    m.offsetX += m.const.BLOCK_WIDTH
-                else if m.offsetX >= 1
-                    m.blockX++
-                    m.offsetX -= m.const.BLOCK_WIDTH
+                    if m.offsetX >= m.const.BLOCK_WIDTH / 4
+                        print "aqui 1"
+                        m.blockX++
+                        m.offsetX -= m.const.BLOCK_WIDTH
+                    end if
                 end if
                 actionArray = m.anims.jumpman.sequence.Lookup(m.charAction)
                 if m.jump = m.const.ACT_JUMP_LEFT and GetBlockType(m.blockX, m.blockY) = m.const.MAP_INV_WALL
