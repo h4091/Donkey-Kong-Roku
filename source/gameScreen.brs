@@ -279,6 +279,21 @@ Sub MobsLauncher()
             m.objects.Push(fireRight)
             m.fireChars += 2
         end if
+        m.board.timer += m.speed
+        if m.currentLevel <= 2
+            launchTime = 2000
+        else if m.currentLevel < 4
+            launchTime = 1500
+        else
+            launchTime = 1000
+        end if
+        if m.board.timer > launchTime
+            offsetX = Rnd(3) * 8
+            spring = CreateSpring(0, m.kong.blockY, -(32 + offsetX) )
+            DrawObject(spring)
+            m.objects.Push(spring)
+            m.board.timer = 0
+        end if
     end if
 End Sub
 
@@ -487,6 +502,18 @@ Sub ObjectsUpdate()
                     obj.sprite.Remove()
                     obj.sprite = invalid
                     print "destroyed cement sprite off screen "; m.objects.Count()
+                end if
+            else if obj.sprite.GetData() = "spring"
+                obj.update()
+                if obj.blockY <= 13
+                    region = obj.sprite.GetRegion()
+                    x = (obj.blockX * m.const.BLOCK_WIDTH) + obj.offsetX
+                    y = ((obj.blockY * m.const.BLOCK_HEIGHT) + obj.offsetY) - region.GetHeight()
+                    obj.sprite.MoveTo(x, y + m.yOff)
+                else
+                    obj.sprite.Remove()
+                    obj.sprite = invalid
+                    print "destroyed spring sprite off screen "; m.objects.Count()
                 end if
             end if
         end if
@@ -976,6 +1003,8 @@ Sub DestroyMobs()
         DestroyObjects(["barrel-", "fire", "score"])
     else if  m.board.name = "conveyors"
         DestroyObjects(["cement", "fire", "score"])
+    else if  m.board.name = "elevators"
+        DestroyObjects(["spring", "fire", "score"])
     else
         DestroyObjects(["fire", "score"])
     end if

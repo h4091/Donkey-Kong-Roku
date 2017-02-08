@@ -117,7 +117,7 @@ Function GetMenuItems(menu as object)
                 HDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
                 SDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
                 ShortDescriptionLine1: menu.levelsHelp[m.settings.levelsOrder]
-                ShortDescriptionLine2: "Use Left and Right to set the levels order"
+                ShortDescriptionLine2: "Use Left and Right to set the boards order"
                 })
     listItems.Push({
                 Title: "High Scores"

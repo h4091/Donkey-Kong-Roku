@@ -15,6 +15,12 @@
            "duration":3030,
            "priority":10
         },
+        "fall":
+        {
+           "type":"mp3",
+           "duration":1123,
+           "priority":10
+        },
         "death": {
             "type": "wav",
             "duration": 3075,
@@ -57,6 +63,12 @@
         {
            "type":"wav",
            "duration":1468,
+           "priority":15
+        },
+        "spring":
+        {
+           "type":"wav",
+           "duration":229,
            "priority":15
         },
         "start-board": {
