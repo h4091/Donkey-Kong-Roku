@@ -63,6 +63,11 @@ Function GetConstants() as object
     const.FIRE_BALL = 0
     const.FIRE_FOX  = 1
 
+    const.LADDER_AT_TOP    = 0
+    const.LADDER_MOVE_DOWN = 1
+    const.LADDER_AT_BOTTOM = 2
+    const.LADDER_MOVE_UP   = 3
+
     const.OIL_BARREL_FREQ = 8
 
     const.CONTROL_VERTICAL   = 0
@@ -120,6 +125,24 @@ Sub SetBlockProperties(blockX as integer, blockY as integer, offset as integer, 
     m.board.map[ty][tx].o = offset
     m.board.map[ty][tx].p = platform
 End Sub
+
+Sub LadderState(blockX as integer, blockY as integer, allowUp as boolean)
+    tx = CInt(blockX / 2)
+    ty = blockY
+    if allowUp then mt = m.const.MAP_FULL_LADDER else mt = m.const.MAP_BRKN_LADDER
+    if isOdd(tx)
+        m.board.map[ty][tx].l = mt
+    else
+        m.board.map[ty][tx].r = mt
+    end if
+    m.board.map[ty][tx].ml = true 'to prevent fire balls from climbing down
+End Sub
+
+Function IsMovingLadder(blockX as integer, blockY as integer) as boolean
+    tx = Int(blockX / 2)
+    ty = blockY
+    return (m.board.map[ty][tx].ml <> invalid)
+End Function
 
 Function GetBlockType(blockX as integer, blockY as integer) as integer
     if blockX < 0 or blockX > 27 or blockY < 0 or blockY > 13

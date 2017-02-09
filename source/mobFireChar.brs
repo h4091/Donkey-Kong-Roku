@@ -97,7 +97,7 @@ Sub update_fire(jumpmanX as integer, jumpmanY as integer)
         end if
     else
         canClimbUp = IsAnyTopLadder(curBlock) or (curFloor = m.offsetY and IsAnyLadder(upBlock))
-        canClimbDn = (IsAnyLadder(curBlock) or IsAnyLadder(downBlock)) and jumpmanY > m.blockY
+        canClimbDn = (IsAnyLadder(curBlock) or IsAnyLadder(downBlock)) and jumpmanY > m.blockY and not IsMovingLadder(m.blockX, m.blockY + 1)
         if m.move = m.MOVE_UP or (canClimbUp and m.takeLadder and m.move <> m.MOVE_DOWN)
             m.move = m.MOVE_UP
             m.offsetX = -7

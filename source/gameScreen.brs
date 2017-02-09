@@ -515,6 +515,40 @@ Sub ObjectsUpdate()
                     obj.sprite = invalid
                     print "destroyed spring sprite off screen "; m.objects.Count()
                 end if
+            else if obj.sprite.GetData() = "ladder"
+                obj.timer += m.speed
+                if obj.state = m.const.LADDER_AT_TOP
+                    if obj.timer > obj.delay
+                        obj.state = m.const.LADDER_MOVE_DOWN
+                        obj.step = 0
+                        LadderState(obj.blockX, obj.blockY-1, false)
+                    end if
+                else if obj.state = m.const.LADDER_MOVE_DOWN
+                    obj.step++
+                    if obj.step <= m.const.BLOCK_HEIGHT
+                        obj.sprite.MoveOffset(0, 1)
+                    else
+                        obj.state = m.const.LADDER_AT_BOTTOM
+                        da = [100, 200, 300, 500, 1000, 2000]
+                        obj.delay = da[Rnd(6) - 1]
+                        obj.timer = 0
+                    end if
+                else if obj.state = m.const.LADDER_AT_BOTTOM
+                    if obj.timer > obj.delay
+                        obj.state = m.const.LADDER_MOVE_UP
+                        obj.step = 0
+                    end if
+                else if obj.state = m.const.LADDER_MOVE_UP
+                    obj.step++
+                    if obj.step <= m.const.BLOCK_HEIGHT
+                        obj.sprite.MoveOffset(0, -1)
+                    else
+                        obj.state = m.const.LADDER_AT_TOP
+                        obj.delay = 4000 '4 seconds on top
+                        obj.timer = 0
+                        LadderState(obj.blockX, obj.blockY-1, true)
+                    end if
+                end if
             end if
         end if
     next

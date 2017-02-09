@@ -167,6 +167,11 @@ Sub ResetGame()
             if obj.name = "rivet"
                 g.rivets++
                 g.board.map[obj.blockY][Int(obj.blockX / 2)].rivet = true
+            else if obj.name = "ladder"
+                g.objects[i].state = m.const.LADDER_AT_TOP
+                g.objects[i].step = 0
+                g.objects[i].timer = 0
+                g.objects[i].delay = Rnd(5) * 1000 'from 1s to 5s to start moving
             else if obj.name = "conveyor"
                 if g.belts.Count() < obj.belt + 1
                     g.belts.Push({xl: 0, xr: 27, y: obj.blockY, conveyors: []})
