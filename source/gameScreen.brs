@@ -564,7 +564,15 @@ Sub DrawScore(showBonus = true as boolean)
     'Paint score
     leftOff = ((m.mainWidth - 640) / 2)
     m.gameLeft.Clear(0)
-    m.gameLeft.DrawText("1UP", leftOff + 24, 12, m.colors.red, m.gameFont)
+    if m.flash = invalid or not showBonus then m.flash = {timer:0, on: true}
+    m.flash.timer += m.const.GAME_SPEED
+    if m.flash.timer > 240
+        m.flash.timer = 0
+        m.flash.on = not m.flash.on
+    end if
+    if m.flash.on
+        m.gameLeft.DrawText("1UP", leftOff + 24, 12, m.colors.red, m.gameFont)
+    end if
     m.gameLeft.DrawText(zeroPad(m.gameScore, 6), leftOff, 28, m.colors.white, m.gameFont)
     m.gameRight.Clear(0)
     m.gameRight.DrawText("HIGH", 16, 12, m.colors.red, m.gameFont)
