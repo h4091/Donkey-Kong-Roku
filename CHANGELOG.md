@@ -1,5 +1,13 @@
 #Donkey Kong for Roku - Changelog
 
+#####v0.11 - 09-Fev-2017 - Bouncing Springs, Moving Ladders and Elevator platform fix
+* Add: Random Obstacle: Jumping spring (Elevators board) #9
+* Add: Object Animation: Moving ladders (Conveyors board) #3
+* Add: Settings: Starting Lives #20
+* Add: The label 1UP must be flashing during the game #33
+* Fix: Jumping over elevator platform is not consistent #22
+* Fix: Stick 3600X: The score numbers blink during initial scene #31
+
 #####v0.10 - 04-Fev-2017 - Fire Ball, Fire Fox, Cement Tray, Set Boards Order
 * Add: Random Obstacle: Fireball AI (barrels, elevators, conveyors) #6
 * Add: Random Obstacle: Firefox AI (rivets) #7
