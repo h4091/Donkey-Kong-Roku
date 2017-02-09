@@ -39,7 +39,7 @@ Sub PlayGame()
             else if id = m.code.BUTTON_PLAY_PRESSED
                 PauseGame()
             else if id = m.code.BUTTON_INFO_PRESSED
-                if m.jumpman.lives < m.const.START_LIVES + 1
+                if m.jumpman.lives < m.settings.startLives + 1
                     m.jumpman.lives++
                     m.jumpman.usedCheat = true
                 end if

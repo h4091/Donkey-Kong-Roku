@@ -31,8 +31,9 @@ Function GetConstants() as object
     const.MENU_START    = 0
     const.MENU_CONTROL  = 1
     const.MENU_LEVELS   = 2
-    const.MENU_HISCORES = 3
-    const.MENU_CREDITS  = 4
+    const.MENU_LIVES    = 3
+    const.MENU_HISCORES = 4
+    const.MENU_CREDITS  = 5
 
     const.LEVELS_USA = 0
     const.LEVELS_JPN = 1
@@ -394,6 +395,7 @@ Function LoadSettings() as dynamic
     if settings = invalid then settings = {}
     if settings.levelsOrder = invalid then settings.levelsOrder = m.const.LEVELS_USA
     if settings.controlMode = invalid then settings.controlMode = m.const.CONTROL_VERTICAL
+    if settings.startLives = invalid then settings.startLives = m.const.START_LIVES
     if settings.highScores = invalid
         settings.highScores = [ {score: 7650, name: ""},
                                 {score: 6100, name: ""},

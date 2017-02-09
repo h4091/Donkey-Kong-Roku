@@ -24,7 +24,7 @@ Function CreateJumpman() as object
     this.anims = m.anims
     this.alive = false
     this.usedCheat = false
-    this.lives = m.const.START_LIVES
+    this.lives = m.settings.startLives
     this.immortal = false 'flag to enable/disable jumpman immortality
     'Methods
     this.startBoard = start_board_jumpman

@@ -22,6 +22,9 @@ Function StartMenu(focus as integer) as integer
     this.levelsOrder = ["USA Arcade", "Japan Arcade"]
     this.levelsHelp  = ["Boards order change per level", "Same boards order all levels"]
     this.levelsImage = ["pkg:/images/menu_levels_usa.png", "pkg:/images/menu_levels_japan.png"]
+    this.startLives = ["3", "4", "5", "6"]
+    this.livesHelp  = ["", "", "", ""]
+    this.livesImage = ["pkg:/images/menu_lives_3.png", "pkg:/images/menu_lives_4.png", "pkg:/images/menu_lives_5.png", "pkg:/images/menu_lives_6.png"]
     listItems = GetMenuItems(this)
     this.screen.SetContent(listItems)
     this.screen.SetFocusedListItem(focus)
@@ -83,6 +86,22 @@ Function StartMenu(focus as integer) as integer
                         this.screen.SetItem(listIndex, listItems[listIndex])
                         m.sounds.navSingle.Trigger(50)
                     end if
+                else if listIndex = m.const.MENU_LIVES
+                    if remoteKey = m.code.BUTTON_LEFT_PRESSED
+                        m.settings.startLives--
+                        if m.settings.startLives < 3 then m.settings.startLives = 6
+                    else if remoteKey = m.code.BUTTON_RIGHT_PRESSED
+                        m.settings.startLives++
+                        if m.settings.startLives > 6 then m.settings.startLives = 3
+                    end if
+                    if update
+                        listItems[listIndex].Title = "Start Lives: " + this.startLives[m.settings.startLives - 3]
+                        listItems[listIndex].ShortDescriptionLine1 = this.livesHelp[m.settings.startLives - 3]
+                        listItems[listIndex].HDPosterUrl = this.livesImage[m.settings.startLives - 3]
+                        listItems[listIndex].SDPosterUrl = this.livesImage[m.settings.startLives - 3]
+                        this.screen.SetItem(listIndex, listItems[listIndex])
+                        m.sounds.navSingle.Trigger(50)
+                    end if
                 end if
             end if
         end if
@@ -118,6 +137,15 @@ Function GetMenuItems(menu as object)
                 SDPosterUrl: menu.levelsImage[m.settings.levelsOrder]
                 ShortDescriptionLine1: menu.levelsHelp[m.settings.levelsOrder]
                 ShortDescriptionLine2: "Use Left and Right to set the boards order"
+                })
+    listItems.Push({
+                Title: "Start Lives: " + menu.startLives[m.settings.startLives - 3]
+                HDSmallIconUrl: "pkg:/images/icon_arrows.png"
+                SDSmallIconUrl: "pkg:/images/icon_arrows.png"
+                HDPosterUrl: menu.livesImage[m.settings.startLives - 3]
+                SDPosterUrl: menu.livesImage[m.settings.startLives - 3]
+                ShortDescriptionLine1: menu.livesHelp[m.settings.startLives - 3]
+                ShortDescriptionLine2: "Use Left and Right to set the start lives"
                 })
     listItems.Push({
                 Title: "High Scores"
