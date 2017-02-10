@@ -16,16 +16,14 @@ Sub IntroScene()
     intro3 = CreateObject("roBitmap", "pkg:/assets/images/intro-3.png")
     w = intro1.GetWidth()
     h = intro1.GetHeight()
-    m.mainScreen.Clear(0)
-    m.mainScreen.SwapBuffers()
-    m.mainScreen.Clear(0)
+    m.mainScreen.Clear(m.colors.black)
     m.gameScreen.DrawObject(0, m.yOff, intro2)
     DrawScore(false)
     m.mainScreen.SwapBuffers()
     Sleep(500)
     PlaySound("intro-scene")
     'Kong climbing ladder
-    m.mainScreen.Clear(0)
+    m.mainScreen.Clear(m.colors.black)
     DrawScore(false)
     action = 0
     x = 205

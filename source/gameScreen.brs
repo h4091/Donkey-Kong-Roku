@@ -11,9 +11,9 @@
 
 Sub PlayGame()
     'Clear screen (needed for non-OpenGL devices)
-    m.mainScreen.Clear(0)
+    m.mainScreen.Clear(m.colors.black)
     m.mainScreen.SwapBuffers()
-    m.mainScreen.Clear(0)
+    m.mainScreen.Clear(m.colors.black)
     'Initialize flags and aux variables
     m.debug = false
     m.gameOver = false
@@ -69,7 +69,7 @@ Sub PlayGame()
                 m.compositor.AnimationTick(ticks)
                 m.compositor.DrawAll()
                 DrawScore()
-                if m.debug then DrawGrid()
+                DrawGrid()
                 m.mainScreen.SwapBuffers()
                 if m.freeze then stop
                 m.freeze = false
@@ -127,7 +127,7 @@ End Sub
 
 Sub LevelHeightScreen()
     PlaySound("start-board")
-    m.mainScreen.Clear(0)
+    m.mainScreen.Clear(m.colors.black)
     DrawScore(false)
     kong = CreateObject("roBitmap", "pkg:/assets/images/height-kong.png")
     for b = 1 to m.currentBoard
@@ -563,7 +563,7 @@ Sub DrawScore(showBonus = true as boolean)
     next
     'Paint score
     leftOff = ((m.mainWidth - 640) / 2)
-    m.gameLeft.Clear(0)
+    m.gameLeft.Clear(m.colors.black)
     if m.flash = invalid or not showBonus then m.flash = {timer:0, on: true}
     m.flash.timer += m.const.GAME_SPEED
     if m.flash.timer > 240
@@ -574,7 +574,7 @@ Sub DrawScore(showBonus = true as boolean)
         m.gameLeft.DrawText("1UP", leftOff + 24, 12, m.colors.red, m.gameFont)
     end if
     m.gameLeft.DrawText(zeroPad(m.gameScore, 6), leftOff, 28, m.colors.white, m.gameFont)
-    m.gameRight.Clear(0)
+    m.gameRight.Clear(m.colors.black)
     m.gameRight.DrawText("HIGH", 16, 12, m.colors.red, m.gameFont)
     m.gameRight.DrawText(zeroPad(m.highScore, 6), 0, 28, m.colors.white, m.gameFont)
     m.gameScreen.DrawText("L=" + zeroPad(m.currentLevel), 340 , 12, m.colors.blue, m.gameFont)
@@ -588,8 +588,16 @@ Sub DrawScore(showBonus = true as boolean)
 End Sub
 
 Sub DrawGrid()
-    bmp = CreateObject("roBitmap", "pkg:/assets/images/board-grid.png")
-    m.mainScreen.DrawObject((m.mainWidth - 640) / 2, 0, bmp)
+    if m.debug
+        bmp = CreateObject("roBitmap", "pkg:/assets/images/board-grid.png")
+        rgn = CreateObject("roRegion", bmp, 0, 0, bmp.GetWidth(), bmp.GetHeight())
+        if m.board.grid = invalid
+            m.board.grid = m.compositor.NewSprite(0, m.yOff, rgn, m.const.CHARS_Z + 10)
+        end if
+    else if m.board.grid <> invalid
+        m.board.grid.Remove()
+        m.board.grid = invalid
+    end if
 End Sub
 
 Sub JumpmanUpdate()
@@ -1036,6 +1044,10 @@ Sub DestroyStage()
     if m.board.sprite <> invalid
         m.board.sprite.Remove()
         m.board.sprite = invalid
+    end if
+    if m.board.grid <> invalid
+        m.board.grid.Remove()
+        m.board.grid = invalid
     end if
     DestroyObjects()
 End Sub
