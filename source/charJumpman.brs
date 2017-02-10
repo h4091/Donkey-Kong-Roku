@@ -3,7 +3,7 @@
 ' **  Roku Donkey Kong Channel - http://github.com/lvcabral/Donkey-Kong-Roku
 ' **
 ' **  Created: October 2016
-' **  Updated: January 2017
+' **  Updated: February 2017
 ' **
 ' **  Remake in BrigthScript developed by Marcelo Lv Cabral - http://lvcabral.com
 ' ********************************************************************************************************
@@ -192,7 +192,7 @@ Sub move_jumpman(action)
             if GetBlockType(m.blockX - 1, m.blockY) <> m.const.MAP_INV_WALL or m.offsetX > 0
                 m.state = m.STATE_MOVE
                 m.offsetX -= m.frameOffsetX()
-                if m.blockX > 0 and m.offsetX <= -(m.const.BLOCK_WIDTH / 2)
+                if m.blockX > 0 and m.offsetX <= -m.const.BLOCK_WIDTH
                     m.blockX--
                     m.offsetX += m.const.BLOCK_WIDTH
                 end if

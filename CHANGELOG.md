@@ -7,6 +7,7 @@
 * Add: The label 1UP must be flashing during the game #33
 * Fix: Jumping over elevator platform is not consistent #22
 * Fix: Stick 3600X: The score numbers blink during initial scene #31
+* Fix: Jumpman is falling too early when walking to the left towards an edge #32
 
 #####v0.10 - 04-Fev-2017 - Fire Ball, Fire Fox, Cement Tray, Set Boards Order
 * Add: Random Obstacle: Fireball AI (barrels, elevators, conveyors) #6
