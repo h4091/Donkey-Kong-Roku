@@ -20,7 +20,6 @@ Sub Main()
     app.SetTheme(GetTheme())
     m.port = CreateObject("roMessagePort")
     m.clock = CreateObject("roTimespan")
-    m.timer = CreateObject("roTimespan")
     m.audioPlayer = CreateObject("roAudioPlayer")
     m.audioPort = CreateObject("roMessagePort")
     m.audioPlayer.SetMessagePort(m.audioPort)
@@ -107,6 +106,7 @@ Sub ResetGame()
     end if
     if m.currentLevel <= g.maps.bonus.Count()
         g.bonus = g.maps.bonus.Lookup("level-" + itostr(m.currentLevel))
+        g.bonus.timer = 0
     end if
     if m.currentLevel < 5
         g.difficulty = {timer: 0, level: m.currentLevel}

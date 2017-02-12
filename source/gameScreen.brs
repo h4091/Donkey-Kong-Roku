@@ -977,7 +977,6 @@ Sub BoardStartup()
     m.startup = false
     StopSound()
     if m.board.audio <> invalid then PlaySong(m.board.audio, true)
-    m.timer.mark()
 End Sub
 
 Function CheckBoardSuccess() as boolean
@@ -985,10 +984,11 @@ Function CheckBoardSuccess() as boolean
 End Function
 
 Sub UpdateBonusTimer()
-    if m.currentBonus >= 100 and m.timer.TotalMilliseconds() > m.bonus.time
+    m.bonus.timer += m.speed
+    if m.currentBonus >= 100 and m.bonus.timer > m.bonus.time
         m.currentBonus -= 100
-        m.timer.mark()
-    else if m.currentBonus = 0 and m.timer.TotalMilliseconds() > 4283 and m.jumpman.state <> m.jumpman.STATE_JUMP
+        m.bonus.timer = 0
+    else if m.currentBonus = 0 and m.bonus.timer > 4283 and m.jumpman.state <> m.jumpman.STATE_JUMP
         m.jumpman.alive = m.jumpman.immortal
     end if
 End Sub
@@ -1122,7 +1122,6 @@ Sub GameOver()
         key = wait(3000, m.port)
         if key = invalid or key < 100 then exit while
     end while
-    'ClearSavedGame()
 End Sub
 
 Function ControlNext(id as integer) as boolean
