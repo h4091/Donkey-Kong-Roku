@@ -1,5 +1,11 @@
 #Donkey Kong for Roku - Changelog
 
+#####v0.12 - 12-Fev-2017 - Audio improvements and bug fixes
+* Add: Support dual audio channels for sound effects #37
+* Fix: Bonus timer on slower devices is not proportional to the game speed #34
+* Fix: Jumping over cement trays is not counting 100 points #35
+* Fix: Sometimes stepping over a rivet the jumpman will fall right away #36
+
 #####v0.11 - 09-Fev-2017 - Bouncing Springs, Moving Ladders and Elevator platform fix
 * Add: Random Obstacle: Jumping spring (Elevators board) #9
 * Add: Object Animation: Moving ladders (Conveyors board) #3
