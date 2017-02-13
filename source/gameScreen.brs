@@ -302,7 +302,8 @@ Sub ObjectsUpdate()
     for i = 0 to m.objects.Count() - 1
         obj = m.objects[i]
         if obj.sprite <> invalid
-            if obj.sprite.GetData() = "score"
+            spriteName = obj.sprite.GetData()
+            if spriteName = "score"
                 if obj.countdown = invalid
                     obj.countdown = 40
                 else
@@ -311,12 +312,12 @@ Sub ObjectsUpdate()
                 if obj.countdown = 0
                     obj.sprite.Remove()
                     obj.sprite = invalid
-                    if GetBlockType(obj.blockX, obj.blockY) = m.const.MAP_RIVET
+                    if obj.name = "rivet" and GetBlockType(obj.blockX, obj.blockY) = m.const.MAP_RIVET
                         m.board.map[obj.blockY][Int(obj.blockX / 2)].rivet = invalid
                     end if
                 end if
             else if obj.belt <> invalid
-                if Right(obj.sprite.GetData(), 1) <> m.belts[obj.belt].direction
+                if Right(spriteName, 1) <> m.belts[obj.belt].direction
                     animation = obj.name + obj.side + m.belts[obj.belt].direction
                     actions = m.anims.objects.sequence.Lookup(animation)
                     regions = []
@@ -334,7 +335,7 @@ Sub ObjectsUpdate()
                         obj.sprite.SetMemberFlags(0)
                     end if
                 end if
-            else if obj.sprite.GetData() = "platform"
+            else if spriteName = "platform"
                 elevator = m.elevators[obj.elevator]
                 platform = elevator.p[obj.platform]
                 curY = ((platform.y * m.const.BLOCK_HEIGHT) + platform.o)
@@ -404,11 +405,11 @@ Sub ObjectsUpdate()
                         m.jumpman.offsetY -= m.const.BLOCK_HEIGHT
                     end if
                 end if
-            else if obj.sprite.GetData() = "flames"
+            else if spriteName = "flames"
                 flames = obj
-            else if Left(obj.sprite.GetData(), 7) = "barrel-"
+            else if Left(spriteName, 7) = "barrel-"
                 obj.update(m.jumpman.blockX, m.jumpman.blockY)
-                if obj.sprite.GetData() <> obj.animation
+                if spriteName <> obj.animation
                     obj.sprite.Remove()
                     obj.sprite = invalid
                     DrawObject(obj)
@@ -448,9 +449,9 @@ Sub ObjectsUpdate()
                     obj.sprite = invalid
                     print "destroyed barrel sprite "; m.objects.Count()
                 end if
-            else if Left(obj.sprite.GetData(), 4) = "fire"
+            else if Left(spriteName, 4) = "fire"
                 obj.update(m.jumpman.blockX, m.jumpman.blockY)
-                redraw = (obj.sprite.GetData() <> obj.animation)
+                redraw = (spriteName <> obj.animation)
                 if m.jumpman.hammer <> invalid and m.jumpman.hammer.countdown > 0
                     if Right(obj.name, 3) = "red"
                         obj.name = obj.name.Replace("red", "blue")
@@ -481,7 +482,7 @@ Sub ObjectsUpdate()
                     obj.sprite = invalid
                     print "destroyed fire sprite "; m.objects.Count()
                 end if
-            else if obj.sprite.GetData() = "cement"
+            else if spriteName = "cement"
                 obj.update()
                 if Abs(obj.offsetX) <= m.const.BLOCK_WIDTH * 2
                     region = obj.sprite.GetRegion()
@@ -503,7 +504,7 @@ Sub ObjectsUpdate()
                     obj.sprite = invalid
                     print "destroyed cement sprite off screen "; m.objects.Count()
                 end if
-            else if obj.sprite.GetData() = "spring"
+            else if spriteName = "spring"
                 obj.update()
                 if obj.blockY <= 13
                     region = obj.sprite.GetRegion()
@@ -515,7 +516,7 @@ Sub ObjectsUpdate()
                     obj.sprite = invalid
                     print "destroyed spring sprite off screen "; m.objects.Count()
                 end if
-            else if obj.sprite.GetData() = "ladder"
+            else if spriteName = "ladder"
                 obj.timer += m.speed
                 if obj.state = m.const.LADDER_AT_TOP
                     if obj.timer > obj.delay
@@ -633,8 +634,8 @@ Sub JumpmanUpdate()
                                 if m.rivets > 0 then m.rivets--
                                 exit for
                             end if
-                        else if Right(obj.name, 7) = "rolling" or Left(obj.name, 4) = "fire"
-                            if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY > m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
+                        else if Right(obj.name, 7) = "rolling" or Left(obj.name, 4) = "fire" or obj.name = "cement"
+                            if Abs(m.jumpman.blockX-obj.blockX) <= 1 and obj.blockY >= m.jumpman.blockY and obj.blockY - m.jumpman.blockY <= 2
                                 if pts = 0
                                     pts = 100
                                     x = obj.sprite.GetX()
@@ -691,7 +692,7 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.color = "hbr"
                     m.jumpman.hammer.up = true
                     m.jumpman.hammer.sprite = objSprite
-                    StopSound()
+                    StopAudio()
                     PlaySong("background-3", true)
                 else if objName = "oil"
                     print "Ignore oil"
@@ -723,7 +724,7 @@ Sub JumpmanUpdate()
                     m.jumpman.hammer.sprite = invalid
                     m.jumpman.hammer = invalid
                     'restore board background audio
-                    StopSound()
+                    StopAudio()
                     if m.board.audio <> invalid then PlaySong(m.board.audio, true)
                 else
                     if m.jumpman.hammer.countdown < m.const.HAMMER_TIME / 2
